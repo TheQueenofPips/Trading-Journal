@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discipline First — Trading Journal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@400;500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #F5E9C8;
+    --gold-dim: #8A6E2F;
+    --danger: #C94C4C;
+    --danger-bg: #FAEDED;
+    --success: #2E7D52;
+    --success-bg: #E8F5EE;
+    --warn-bg: #FFF8E8;
+    --warn-text: #8A6E2F;
+    --border: rgba(0,0,0,0.1);
+    --card-bg: #ffffff;
+    --surface: #f6f5f2;
+    --page-bg: #f0ede8;
+    --text: #1a1a18;
+    --muted: #6b6b67;
+    --font-sans: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+    --font-serif: 'Playfair Display', serif;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --card-bg: #1e1e1c;
+      --surface: #282825;
+      --page-bg: #141412;
+      --text: #f0ede8;
+      --muted: #9a9a95;
+      --border: rgba(255,255,255,0.1);
+      --gold-light: #3a2e10;
+      --gold-dim: #e8c06a;
+      --danger-bg: #2e1010;
+      --success-bg: #0e2418;
+      --warn-bg: #2a2210;
+    }
+  }
+
+  html, body { height: 100%; font-family: var(--font-sans); background: var(--page-bg); color: var(--text); font-size: 15px; }
+
+  .app { display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 220px; flex-shrink: 0; background: var(--card-bg);
+    border-right: 0.5px solid var(--border);
+    display: flex; flex-direction: column; padding: 1.5rem 0;
+    position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; z-index: 100;
+  }
+  .sidebar-logo { padding: 0 1.25rem 1.5rem; border-bottom: 0.5px solid var(--border); margin-bottom: 0.75rem; }
+  .sidebar-logo h1 { font-family: var(--font-serif); font-size: 17px; font-weight: 500; color: var(--text); line-height: 1.3; }
+  .sidebar-logo p { font-family: var(--font-mono); font-size: 10px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .sidebar-logo .gold-bar { width: 32px; height: 3px; background: var(--gold); border-radius: 2px; margin-bottom: 8px; }
+
+  .nav-section { padding: 0 0.75rem; margin-bottom: 0.5rem; }
+  .nav-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; padding: 0 0.5rem; margin-bottom: 4px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: var(--radius-md); cursor: pointer; font-size: 13px; color: var(--muted); transition: all 0.15s; border: none; background: none; width: 100%; text-align: left; font-family: var(--font-sans); }
+  .nav-item:hover { background: var(--surface); color: var(--text); }
+  .nav-item.active { background: var(--gold-light); color: var(--gold-dim); font-weight: 500; }
+  .nav-item .icon { width: 16px; text-align: center; font-size: 14px; flex-shrink: 0; }
+
+  .sidebar-bottom { margin-top: auto; padding: 1rem 1.25rem 0; border-top: 0.5px solid var(--border); }
+  .thailand-progress-mini { }
+  .tp-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; }
+  .tp-amount { font-family: var(--font-mono); font-size: 18px; font-weight: 500; color: var(--gold); }
+  .tp-sub { font-size: 11px; color: var(--muted); margin-top: 2px; margin-bottom: 8px; }
+  .progress-track { height: 6px; background: var(--surface); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; background: var(--gold); transition: width 0.4s; }
+  .progress-fill.success { background: var(--success); }
+  .progress-fill.danger { background: var(--danger); }
+
+  /* MAIN */
+  .main { margin-left: 220px; flex: 1; padding: 2rem; max-width: 900px; }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* CARDS */
+  .card { background: var(--card-bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 16px; }
+  .card-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .card-value { font-family: var(--font-mono); font-size: 24px; font-weight: 500; color: var(--text); }
+  .card-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .page-title { font-family: var(--font-serif); font-size: 22px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .page-sub { font-family: var(--font-mono); font-size: 12px; color: var(--muted); margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .section-title { font-family: var(--font-mono); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; font-weight: 500; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-bottom: 16px; }
+
+  .metric-card { background: var(--surface); border-radius: var(--radius-md); padding: 1rem; }
+  .metric-card .m-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; }
+  .metric-card .m-value { font-family: var(--font-mono); font-size: 20px; font-weight: 500; color: var(--text); margin-top: 6px; }
+  .metric-card .m-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  /* ALERTS */
+  .alert { border-radius: var(--radius-md); padding: 12px 16px; font-size: 13px; margin-bottom: 14px; border-left: 3px solid; line-height: 1.6; }
+  .alert-danger { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+  .alert-success { background: var(--success-bg); border-color: var(--success); color: var(--success); }
+  .alert-warn { background: var(--warn-bg); border-color: var(--gold); color: var(--warn-text); }
+
+  /* FORMS */
+  label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 5px; }
+  input[type="text"], input[type="number"], select, textarea {
+    width: 100%; padding: 8px 12px; font-family: var(--font-sans); font-size: 14px;
+    border: 0.5px solid var(--border); border-radius: var(--radius-md);
+    background: var(--surface); color: var(--text); outline: none; transition: border 0.15s;
+  }
+  input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus { border-color: var(--gold); }
+  textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+  .form-row { margin-bottom: 14px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  /* BUTTONS */
+  .btn { padding: 9px 20px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); cursor: pointer; font-family: var(--font-sans); transition: all 0.15s; }
+  .btn-primary { background: var(--gold); color: #fff; border: none; }
+  .btn-primary:hover { background: var(--gold-dim); }
+  .btn-ghost { background: transparent; color: var(--muted); border: 0.5px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+  .btn-danger { background: transparent; color: var(--danger); border: 0.5px solid var(--danger); }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+
+  /* PROGRESS */
+  .progress-bar-wrap { margin-bottom: 16px; }
+  .progress-label { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+
+  /* EMOTION GRID */
+  .emotion-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+  .emotion-btn { padding: 9px 4px; font-size: 12px; border: 0.5px solid var(--border); border-radius: var(--radius-md); background: var(--surface); color: var(--muted); cursor: pointer; text-align: center; transition: all 0.15s; font-family: var(--font-sans); }
+  .emotion-btn:hover { border-color: var(--gold); }
+  .emotion-btn.selected { border-color: var(--gold); background: var(--gold-light); color: var(--gold-dim); font-weight: 500; }
+  .emotion-btn.danger-emotion.selected { border-color: var(--danger); background: var(--danger-bg); color: var(--danger); }
+
+  /* RULES */
+  .rule-card { border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 14px; }
+  .rule-num { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--gold); background: var(--gold-light); padding: 3px 8px; border-radius: 10px; flex-shrink: 0; margin-top: 2px; }
+  .rule-text { font-size: 13px; color: var(--text); line-height: 1.6; }
+  .rule-text strong { font-weight: 500; }
+
+  /* FOMO CHECKLIST */
+  .fomo-check { background: var(--surface); border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+  .fomo-check:hover { background: var(--gold-light); }
+  .fomo-check input[type="checkbox"] { width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--gold); cursor: pointer; }
+  .fomo-check span { font-size: 13px; color: var(--text); line-height: 1.5; }
+
+  /* TRADE LOG TABLE */
+  .trade-table-wrap { overflow-x: auto; }
+  .trade-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: var(--font-mono); }
+  .trade-table th { text-align: left; padding: 6px 10px; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 0.5px solid var(--border); font-weight: 500; white-space: nowrap; }
+  .trade-table td { padding: 10px 10px; border-bottom: 0.5px solid var(--border); vertical-align: top; }
+  .trade-table tr:last-child td { border-bottom: none; }
+  .trade-table tr:hover td { background: var(--surface); }
+  .pnl-pos { color: var(--success); font-weight: 500; }
+  .pnl-neg { color: var(--danger); font-weight: 500; }
+
+  /* ACCOUNT ROWS */
+  .account-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+  .account-row:last-child { border-bottom: none; }
+  .acct-name { font-family: var(--font-mono); font-size: 13px; font-weight: 500; width: 100px; flex-shrink: 0; }
+  .acct-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 500; font-family: var(--font-mono); flex-shrink: 0; }
+  .badge-topstep { background: #E8F0FA; color: #1A4F9A; }
+  .badge-apex { background: #F0E8FA; color: #5A1A9A; }
+  .badge-lucid { background: #E8FAF0; color: #1A6E3A; }
+  .badge-bulenox { background: #E8F6FA; color: #1A6E8A; }
+  .badge-tradeday { background: #FAF4E8; color: #8A6E1A; }
+  .badge-ftp { background: #F0FAE8; color: #3A6E1A; }
+  .badge-tpt { background: #FAE8F0; color: #8A1A6E; }
+  .badge-other { background: var(--surface); color: var(--muted); border: 0.5px solid var(--border); }
+  .acct-bar-wrap { flex: 1; }
+  .acct-input-wrap { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 12px; color: var(--muted); flex-shrink: 0; }
+  .acct-input-wrap input { width: 80px; padding: 4px 8px; font-size: 12px; }
+
+  /* COLLAR */
+  .collar-display { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .collar-item { text-align: center; padding: 12px 8px; border-radius: var(--radius-md); }
+  .collar-max { background: var(--success-bg); }
+  .collar-stop { background: var(--danger-bg); }
+  .collar-trail { background: var(--surface); }
+  .c-label { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; }
+  .collar-max .c-label { color: var(--success); }
+  .collar-stop .c-label { color: var(--danger); }
+  .collar-trail .c-label { color: var(--muted); }
+  .c-val { font-family: var(--font-mono); font-size: 20px; font-weight: 500; margin-top: 6px; }
+  .collar-max .c-val { color: var(--success); }
+  .collar-stop .c-val { color: var(--danger); }
+  .collar-trail .c-val { color: var(--text); }
+
+  /* STREAK */
+  .streak-dots { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .streak-dot { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-family: var(--font-mono); flex-shrink: 0; cursor: pointer; transition: transform 0.1s; }
+  .streak-dot:hover { transform: scale(1.1); }
+  .streak-dot.good { background: var(--success-bg); color: var(--success); border: 0.5px solid var(--success); }
+  .streak-dot.bad { background: var(--danger-bg); color: var(--danger); border: 0.5px solid var(--danger); }
+  .streak-dot.empty { background: var(--surface); color: var(--muted); border: 0.5px dashed var(--border); }
+
+  /* FOMO TIMER */
+  .timer-display { font-family: var(--font-mono); font-size: 48px; font-weight: 500; color: var(--gold); text-align: center; padding: 1.5rem; background: var(--surface); border-radius: var(--radius-lg); margin-bottom: 14px; letter-spacing: 0.05em; }
+
+  /* WEEK ROWS */
+  .week-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+  .week-row:last-child { border-bottom: none; }
+  .week-label { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+  .week-amount { font-family: var(--font-mono); font-size: 13px; font-weight: 500; }
+  .week-saved { font-family: var(--font-mono); font-size: 13px; color: var(--success); }
+  .week-completed { opacity: 0.5; }
+
+  /* RANGE SLIDER */
+  input[type="range"] { accent-color: var(--gold); height: 4px; }
+  .range-row { display: flex; align-items: center; gap: 12px; }
+  .range-row input { flex: 1; }
+  .range-val { font-family: var(--font-mono); font-size: 14px; font-weight: 500; min-width: 24px; text-align: right; }
+
+  hr { border: none; border-top: 0.5px solid var(--border); margin: 1.5rem 0; }
+
+  .divider { border: none; border-top: 0.5px solid var(--border); margin: 16px 0; }
+
+  .tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-family: var(--font-mono); font-weight: 500; }
+  .tag-warn { background: var(--warn-bg); color: var(--warn-text); }
+  .tag-danger { background: var(--danger-bg); color: var(--danger); }
+  .tag-success { background: var(--success-bg); color: var(--success); }
+
+  .empty-state { text-align: center; padding: 2rem; color: var(--muted); font-size: 13px; font-family: var(--font-mono); }
+
+  .delete-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 4px; }
+  .delete-btn:hover { color: var(--danger); background: var(--danger-bg); }
+
+  .saved-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--success-bg); color: var(--success); font-family: var(--font-mono); font-size: 11px; padding: 3px 10px; border-radius: 20px; margin-left: 8px; }
+
+  @media (max-width: 680px) {
+    .sidebar { width: 60px; }
+    .sidebar-logo, .nav-label, .nav-item span:not(.icon) { display: none; }
+    .main { margin-left: 60px; padding: 1rem; }
+    .grid4 { grid-template-columns: 1fr 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .emotion-grid { grid-template-columns: repeat(2, 1fr); }
+    .collar-display { grid-template-columns: 1fr; }
+    .grid2, .grid3 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="gold-bar"></div>
+      <h1>Discipline First</h1>
+      <p>Trading Journal</p>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Daily</div>
+      <button class="nav-item active" onclick="switchPanel('dashboard')"><span class="icon">◈</span><span>Dashboard</span></button>
+      <button class="nav-item" onclick="switchPanel('pre')"><span class="icon">◎</span><span>Pre-trade ritual</span></button>
+      <button class="nav-item" onclick="switchPanel('log')"><span class="icon">≡</span><span>Trade log</span></button>
+      <button class="nav-item" onclick="switchPanel('fomo')"><span class="icon">⚑</span><span>FOMO check</span></button>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Management</div>
+      <button class="nav-item" onclick="switchPanel('accounts')"><span class="icon">⊞</span><span>Accounts</span></button>
+      <button class="nav-item" onclick="switchPanel('rules')"><span class="icon">◻</span><span>My rules</span></button>
+      <button class="nav-item" onclick="switchPanel('goal')"><span class="icon">✦</span><span>Thailand goal</span></button>
+      <button class="nav-item" onclick="switchPanel('mindset')"><span class="icon">✎</span><span>Mindset journal</span></button>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="thailand-progress-mini">
+        <div class="tp-label">Goal progress</div>
+        <div class="tp-amount" id="sidebar-saved">$0</div>
+        <div class="tp-sub" id="sidebar-pct">0% of $50,000</div>
+        <div class="progress-track"><div class="progress-fill" id="sidebar-bar" style="width:0%"></div></div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub" id="dash-date">Loading...</div>
+
+      <div class="grid4">
+        <div class="metric-card">
+          <div class="m-label">Weekly target</div>
+          <div class="m-value" id="dash-weekly-target">$15,200</div>
+          <div class="m-sub" id="dash-weekly-sub">8 accts × $1,900</div>
+        </div>
+        <div class="metric-card">
+          <div class="m-label">Saved total</div>
+          <div class="m-value" id="dash-saved">$0</div>
+          <div class="m-sub" id="dash-saved-pct">0% of goal</div>
+        </div>
+        <div class="metric-card">
+          <div class="m-label">Weeks left</div>
+          <div class="m-value" id="dash-weeks-left">16</div>
+          <div class="m-sub">of 16 total</div>
+        </div>
+        <div class="metric-card">
+          <div class="m-label">Today's trades</div>
+          <div class="m-value" id="dash-trade-count">0</div>
+          <div class="m-sub" id="dash-today-pnl">P&L: $0</div>
+        </div>
+      </div>
+
+      <div class="progress-bar-wrap">
+        <div class="progress-label"><span>$50,000 Thailand goal</span><span id="dash-goal-pct">0%</span></div>
+        <div class="progress-track" style="height:10px;"><div class="progress-fill" id="dash-goal-bar" style="width:0%"></div></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-label">Position collar — per account</div>
+          <div class="collar-display" style="margin-bottom:8px;">
+            <div class="collar-item collar-max">
+              <div class="c-label">Max profit</div>
+              <div class="c-val">$1,900</div>
+            </div>
+            <div class="collar-item collar-stop">
+              <div class="c-label">Hard stop-out</div>
+              <div class="c-val">-$950</div>
+            </div>
+            <div class="collar-item collar-trail">
+              <div class="c-label">Trail trigger</div>
+              <div class="c-val">$475</div>
+            </div>
+          </div>
+          <p style="font-size:11px; color:var(--muted); line-height:1.6;">Stop = 50% of weekly target. Trail trigger = 25%. Hit daily target → close that account for the day.</p>
+        </div>
+        <div class="card">
+          <div class="card-label">Discipline streak</div>
+          <div class="streak-dots" id="streak-dots"></div>
+          <div style="font-size:12px; color:var(--muted); font-family:var(--font-mono);" id="streak-label">0 days in a row — click a dot to mark today</div>
+          <div class="btn-row" style="margin-top:10px;">
+            <button class="btn btn-ghost" style="font-size:12px;" onclick="markStreak(true)">✓ Mark today: disciplined</button>
+            <button class="btn btn-danger" style="font-size:12px; padding:6px 14px;" onclick="markStreak(false)">✗ Broke rules</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="dash-alerts"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="switchPanel('pre')">Start pre-trade ritual →</button>
+        <button class="btn btn-ghost" onclick="switchPanel('log')">Log a trade →</button>
+        <button class="btn btn-ghost" onclick="switchPanel('fomo')">FOMO check →</button>
+      </div>
+    </div>
+
+    <!-- PRE-TRADE RITUAL -->
+    <div class="panel" id="panel-pre">
+      <div class="page-title">Pre-trade ritual</div>
+      <div class="page-sub">Complete before opening any charts — no exceptions</div>
+
+      <div class="alert alert-warn">This ritual is not optional. It takes 3 minutes. Skipping it has cost you accounts before.</div>
+
+      <div class="card">
+        <div class="section-title">Morning state check</div>
+        <div class="form-row">
+          <label>How did you sleep?</label>
+          <select id="pre-sleep">
+            <option value="good">Well rested (7+ hrs)</option>
+            <option value="ok">Okay (5–7 hrs)</option>
+            <option value="bad">Poor (under 5 hrs) — consider skipping today</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Current emotional state — be honest</label>
+          <div class="emotion-grid">
+            <button class="emotion-btn" onclick="selectEmotion(this,'calm')">Calm</button>
+            <button class="emotion-btn" onclick="selectEmotion(this,'focused')">Focused</button>
+            <button class="emotion-btn" onclick="selectEmotion(this,'confident')">Confident</button>
+            <button class="emotion-btn" onclick="selectEmotion(this,'neutral')">Neutral</button>
+            <button class="emotion-btn danger-emotion" onclick="selectEmotion(this,'anxious')">Anxious</button>
+            <button class="emotion-btn danger-emotion" onclick="selectEmotion(this,'revengeful')">Revenge mode</button>
+            <button class="emotion-btn danger-emotion" onclick="selectEmotion(this,'fomo')">FOMO active</button>
+            <button class="emotion-btn danger-emotion" onclick="selectEmotion(this,'desperate')">Desperate</button>
+          </div>
+          <div id="emotion-warning" class="alert alert-danger" style="display:none;"></div>
+        </div>
+        <div class="form-row">
+          <label>Financial pressure right now?</label>
+          <select id="pre-pressure">
+            <option value="none">None — I'm trading my plan</option>
+            <option value="some">Some — but manageable</option>
+            <option value="high">High — I feel like I NEED to make money today ⚠</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Any significant stress outside trading? (family, finances, health)</label>
+          <select id="pre-stress">
+            <option value="none">No — clear headspace</option>
+            <option value="minor">Minor background stress</option>
+            <option value="major">Major stress — trading with impaired judgment risk</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Market plan</div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>Instrument(s) today</label>
+            <input type="text" id="pre-instrument" placeholder="e.g. MES, NQ, CL">
+          </div>
+          <div class="form-row">
+            <label>Directional bias</label>
+            <select id="pre-bias">
+              <option>Long bias</option>
+              <option>Short bias</option>
+              <option>Neutral — reactive only</option>
+              <option>No trades today (low conviction)</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Key level to watch</label>
+            <input type="text" id="pre-level" placeholder="e.g. ES 5280 support">
+          </div>
+          <div class="form-row">
+            <label>Max trades per account</label>
+            <input type="number" id="pre-max-trades" value="3" min="1" max="10">
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Today's specific setup(s) — what are you waiting for?</label>
+          <textarea id="pre-setup" placeholder="e.g. Waiting for a pullback to the 8 EMA on NQ at the prior day high. Only entering on confirmation candle close."></textarea>
+        </div>
+      </div>
+
+      <div class="card" style="border-top: 3px solid var(--gold);">
+        <div class="section-title">The Thailand reminder</div>
+        <div style="font-size: 13px; line-height: 1.8; color: var(--text);">
+          <strong>Your only job today:</strong> Protect the accounts. One disciplined trade moves your family closer to Thailand. One revenge trade can blow an account and set you back two weeks.<br><br>
+          <span style="font-family:var(--font-mono); color:var(--gold);">$1,900 × 8 accounts = $15,200 this week. Consistent beats perfect every time.</span>
+        </div>
+      </div>
+
+      <div id="pre-gate" class="alert alert-danger" style="display:none;"></div>
+      <div id="pre-success" class="alert alert-success" style="display:none;"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="completePre()">Ritual complete — open charts →</button>
+        <button class="btn btn-ghost" onclick="switchPanel('dashboard')">Back to dashboard</button>
+      </div>
+
+      <div class="card" style="margin-top:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+          <div class="section-title" style="margin-bottom:0;">Ritual history</div>
+          <button class="btn btn-ghost" style="font-size:11px; padding:4px 12px;"
+            onclick="if(confirm('Clear all ritual history?')){state.rituals=[];saveState();renderRitualLog();}">Clear history</button>
+        </div>
+        <div id="ritual-log-list"><div class="empty-state">No rituals completed yet. Complete the form above to save your first entry.</div></div>
+      </div>
+    </div>
+
+    <!-- TRADE LOG -->
+    <div class="panel" id="panel-log">
+      <div class="page-title">Trade log</div>
+      <div class="page-sub" id="log-date-label">Today</div>
+
+      <div class="card">
+        <div class="section-title">New trade entry</div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>Account</label>
+            <select id="log-account"></select>
+          </div>
+          <div class="form-row">
+            <label>Instrument</label>
+            <input type="text" id="log-symbol" placeholder="e.g. MES, NQ, ES, CL">
+          </div>
+          <div class="form-row">
+            <label>Direction</label>
+            <select id="log-dir"><option>Long</option><option>Short</option></select>
+          </div>
+          <div class="form-row">
+            <label>P&L ($)</label>
+            <input type="number" id="log-pnl" placeholder="e.g. 320 or -150">
+          </div>
+          <div class="form-row">
+            <label>Entry type</label>
+            <select id="log-setup">
+              <option>Planned — in my morning journal</option>
+              <option>Reactive — valid price action signal</option>
+              <option>Impulse — not pre-planned ⚠</option>
+              <option>FOMO — I chased the move ⚠⚠</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Did you honor your stop?</label>
+            <select id="log-stop">
+              <option>Yes — exited at planned level</option>
+              <option>Moved stop once (valid reason)</option>
+              <option>No — held past stop ⚠</option>
+              <option>No stop set ⚠⚠</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>FOMO score before entry (0 = none, 10 = overwhelming)</label>
+          <div class="range-row">
+            <input type="range" min="0" max="10" step="1" value="0" id="log-fomo-score" oninput="document.getElementById('log-fomo-out').textContent=this.value">
+            <span class="range-val" id="log-fomo-out">0</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Post-trade reflection</label>
+          <textarea id="log-note" placeholder="What went right? What went wrong? Did you feel FOMO before entry? Would you take this trade again?"></textarea>
+        </div>
+        <div id="log-alert" class="alert alert-danger" style="display:none;"></div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="logTrade()">Save trade</button>
+          <button class="btn btn-ghost" onclick="clearLogForm()">Clear form</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Today's trades <span id="today-pnl-badge"></span></div>
+        <div id="today-trades-table">
+          <div class="empty-state">No trades logged today.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <div class="section-title" style="margin-bottom:0;">All trades</div>
+          <button class="btn btn-danger" style="font-size:11px; padding:5px 12px;" onclick="if(confirm('Clear ALL trade history?')) { state.trades=[]; saveState(); renderAll(); }">Clear history</button>
+        </div>
+        <div class="trade-table-wrap" id="all-trades-table">
+          <div class="empty-state">No trades logged yet.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCOUNTS -->
+    <div class="panel" id="panel-accounts">
+      <div class="page-title">Account manager</div>
+      <div class="page-sub">Add, remove, pause, and track all your prop firm accounts</div>
+
+      <div class="alert alert-warn">Withdraw target per account weekly. Each account is its own business. Do not let one account's bad day bleed into another.</div>
+
+      <!-- ADD NEW ACCOUNT FORM -->
+      <div class="card" style="margin-bottom:16px; border-left: 3px solid var(--gold);">
+        <div class="section-title">Add new account</div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>Account name</label>
+            <input type="text" id="new-acct-name" placeholder="e.g. MFF #1, Apex #5">
+          </div>
+          <div class="form-row">
+            <label>Prop firm</label>
+            <input type="text" id="new-acct-firm" placeholder="e.g. MyFundedFutures, Apex" list="firm-list">
+            <datalist id="firm-list">
+              <option value="Topstep">
+              <option value="Apex">
+              <option value="Lucid">
+              <option value="MyFundedFutures">
+              <option value="Bulenox">
+              <option value="TradeDay">
+              <option value="Funded Trading Plus">
+              <option value="Take Profit Trader">
+            </datalist>
+          </div>
+          <div class="form-row">
+            <label>Weekly withdrawal target ($)</label>
+            <input type="number" id="new-acct-target" value="1900" min="100">
+          </div>
+        </div>
+        <div id="add-acct-error" style="font-size:12px; color:var(--danger); margin-bottom:8px; min-height:18px;"></div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="addAccount()">Add account</button>
+          <button class="btn btn-ghost" onclick="clearAddForm()">Clear</button>
+        </div>
+      </div>
+
+      <!-- ACTIVE ACCOUNTS LIST -->
+      <div class="card" style="margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <div class="section-title" style="margin-bottom:0;">Active accounts</div>
+          <button class="btn btn-ghost" style="font-size:11px; padding:5px 12px;" onclick="resetWeeklyEarned()">New week — reset earned</button>
+        </div>
+        <div id="acct-list-active"><div class="empty-state">No active accounts yet.</div></div>
+      </div>
+
+      <!-- PAUSED ACCOUNTS LIST -->
+      <div id="paused-accounts-card" class="card" style="margin-bottom:16px; display:none;">
+        <div class="section-title">Paused accounts</div>
+        <div id="acct-list-inactive"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Log weekly payout</div>
+        <div class="form-grid" style="margin-bottom:12px;">
+          <div class="form-row">
+            <label>Account</label>
+            <select id="payout-account"></select>
+          </div>
+          <div class="form-row">
+            <label>Payout amount ($)</label>
+            <input type="number" id="payout-amount" placeholder="1900">
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Notes (optional)</label>
+          <input type="text" id="payout-note" placeholder="e.g. Week 3 — consistent execution">
+        </div>
+        <button class="btn btn-primary" onclick="logPayout()">Log payout</button>
+        <div id="payout-history" style="margin-top:16px;"></div>
+      </div>
+    </div>
+
+    <!-- FOMO CHECK -->
+    <div class="panel" id="panel-fomo">
+      <div class="page-title">FOMO check</div>
+      <div class="page-sub">Run this every time you feel the urge to enter an unplanned trade</div>
+
+      <div class="alert alert-danger">The feeling of missing a move is not a trading signal. Run this checklist. Be honest.</div>
+
+      <div class="card">
+        <div class="section-title">The 90-second pause</div>
+        <div class="timer-display" id="fomo-timer">1:30</div>
+        <p style="font-size:12px; color:var(--muted); text-align:center; margin-bottom:14px; font-family:var(--font-mono);">Start the timer. Step back from the screen. Breathe. Answer every question below honestly. If the timer expires and conviction remains — it might be real. FOMO fades in 90 seconds. Real setups don't.</p>
+        <div class="btn-row" style="justify-content:center;">
+          <button class="btn btn-primary" onclick="startFomoTimer()">Start 90-sec pause</button>
+          <button class="btn btn-ghost" onclick="resetFomoTimer()">Reset timer</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">FOMO checklist</div>
+        <label class="fomo-check" for="fc1"><input type="checkbox" id="fc1"><span>Was this setup in my plan BEFORE the market opened today?</span></label>
+        <label class="fomo-check" for="fc2"><input type="checkbox" id="fc2"><span>Am I entering because of clear price action — not just because "it's moving fast"?</span></label>
+        <label class="fomo-check" for="fc3"><input type="checkbox" id="fc3"><span>Do I have a defined stop AND defined target set BEFORE I enter?</span></label>
+        <label class="fomo-check" for="fc4"><input type="checkbox" id="fc4"><span>Have I already hit my daily target today? (If YES — you should NOT be trading)</span></label>
+        <label class="fomo-check" for="fc5"><input type="checkbox" id="fc5"><span>Am I trying to make back a loss from an earlier trade today?</span></label>
+        <label class="fomo-check" for="fc6"><input type="checkbox" id="fc6"><span>Is this within my max trade count for today?</span></label>
+        <label class="fomo-check" for="fc7"><input type="checkbox" id="fc7"><span>Would I be comfortable showing this exact trade entry to a trading mentor?</span></label>
+        <label class="fomo-check" for="fc8"><input type="checkbox" id="fc8"><span>Right now am I thinking about the trade — or about the money I just missed?</span></label>
+      </div>
+
+      <div id="fomo-result" class="alert" style="display:none;"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="evalFomo()">Evaluate — should I take this trade?</button>
+        <button class="btn btn-ghost" onclick="resetFomo()">Reset checklist</button>
+      </div>
+    </div>
+
+    <!-- RULES -->
+    <div class="panel" id="panel-rules">
+      <div class="page-title">My rules</div>
+      <div class="page-sub">Non-negotiables — read before touching the keyboard</div>
+
+      <div class="alert alert-warn">These rules exist because you've already learned the hard lessons. Don't relearn them.</div>
+
+      <div class="rule-card">
+        <span class="rule-num">R1</span>
+        <span class="rule-text"><strong>One target, one exit.</strong> When an account hits $1,900 for the week — withdraw it, close that platform. No extra trades. The account is done for the week.</span>
+      </div>
+      <div class="rule-card">
+        <span class="rule-num">R2</span>
+        <span class="rule-text"><strong>Hard daily stop-out = $950.</strong> That's 50% of your weekly target. Hit it on any account → computers off, no re-entries, no exceptions. Not "one more trade."</span>
+      </div>
+      <div class="rule-card">
+        <span class="rule-num">R3</span>
+        <span class="rule-text"><strong>No impulse entries.</strong> If it wasn't in your morning plan or isn't a textbook reactive signal — it's FOMO. Run the FOMO checklist. Take the 90-second pause. Every time.</span>
+      </div>
+      <div class="rule-card">
+        <span class="rule-num">R4</span>
+        <span class="rule-text"><strong>3 consecutive losers = session over.</strong> Consecutive losses signal you're off your game. Walk away. Thailand is still there tomorrow. The market will still be there tomorrow.</span>
+      </div>
+      <div class="rule-card">
+        <span class="rule-num">R5</span>
+        <span class="rule-text"><strong>Never move a stop in the wrong direction.</strong> If you placed it, it's sacred. Stop-hunting your own stop losses is how accounts blow. Once set — it does not move wider.</span>
+      </div>
+      <div class="rule-card">
+        <span class="rule-num">R6</span>
+        <span class="rule-text"><strong>Each account is a separate business.</strong> A bad day on Apex #1 does NOT give permission to trade harder on Apex #2 to compensate. They are independent. Treat them that way.</span>
+      </div>
+      <div class="rule-card">
+        <span class="rule-num">R7</span>
+        <span class="rule-text"><strong>Survival mode = no-trade day.</strong> If you feel you NEED to make money today — that is the exact psychological state that blows accounts. Recognize it. Close the laptop. Come back tomorrow.</span>
+      </div>
+      <div class="rule-card">
+        <span class="rule-num">R8</span>
+        <span class="rule-text"><strong>The math already works.</strong> 8 accounts × $1,900 = $15,200/wk. You need $3,125/wk to hit $50K in 16 weeks. That's 20% of what's available. You only need to not blow it.</span>
+      </div>
+
+      <hr>
+      <div class="section-title">Add your own rule</div>
+      <div class="form-row">
+        <input type="text" id="custom-rule-input" placeholder="e.g. Never trade the first 15 minutes of RTH open">
+      </div>
+      <button class="btn btn-primary" onclick="addCustomRule()">Add rule</button>
+      <div id="custom-rules-list" style="margin-top:14px;"></div>
+    </div>
+
+    <!-- THAILAND GOAL -->
+    <div class="panel" id="panel-goal">
+      <div class="page-title">Thailand goal</div>
+      <div class="page-sub">$50,000 in 16 weeks — the mission</div>
+
+      <div class="card" style="border-top: 3px solid var(--gold); margin-bottom:16px;">
+        <div class="grid3">
+          <div class="metric-card">
+            <div class="m-label">Current weekly gross</div>
+            <div class="m-value" id="goal-weekly-display">$15,200</div>
+            <div class="m-sub">across active accounts</div>
+          </div>
+          <div class="metric-card">
+            <div class="m-label">Weekly save needed</div>
+            <div class="m-value" id="goal-save-needed">$3,125</div>
+            <div class="m-sub">to hit goal in 16 wks</div>
+          </div>
+          <div class="metric-card">
+            <div class="m-label">On track?</div>
+            <div class="m-value" id="goal-on-track">—</div>
+            <div class="m-sub">vs pace</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Update your progress</div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>Total saved so far ($)</label>
+            <input type="number" id="goal-saved-input" placeholder="0" oninput="updateGoalLive(this.value)">
+          </div>
+          <div class="form-row">
+            <label>Weeks completed</label>
+            <input type="number" id="goal-weeks-done" placeholder="0" min="0" max="16" oninput="updateWeeksLive(this.value)">
+          </div>
+          <div class="form-row">
+            <label>Goal amount ($)</label>
+            <input type="number" id="goal-target-input" value="50000" min="1000">
+          </div>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-label"><span>Progress to $50,000</span><span id="goal-pct-label">0%</span></div>
+          <div class="progress-track" style="height:10px;"><div class="progress-fill" id="goal-main-bar" style="width:0%"></div></div>
+        </div>
+        <button class="btn btn-primary" onclick="saveGoalProgress()">Save progress</button>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Week-by-week savings plan</div>
+        <div id="week-schedule"></div>
+      </div>
+    </div>
+
+
+    <!-- MINDSET JOURNAL -->
+    <div class="panel" id="panel-mindset">
+      <div class="page-title">Mindset journal</div>
+      <div class="page-sub">Break through mental barriers. Document the journey.</div>
+
+      <div class="alert alert-warn" style="font-size:13px; line-height:1.7;">
+        This journal is for you — not your trades. Write about fear, self-sabotage, what's driving you, what's holding you back. Patterns you can only see when you write them down.
+      </div>
+
+      <!-- NEW ENTRY FORM -->
+      <div class="card" style="margin-bottom:16px; border-left:3px solid var(--gold);">
+        <div class="section-title">New entry</div>
+
+        <div class="form-grid" style="margin-bottom:12px;">
+          <div class="form-row">
+            <label>Entry type</label>
+            <select id="j-type" onchange="updatePrompts()">
+              <option value="reflection">Daily reflection</option>
+              <option value="breakthrough">Breakthrough moment</option>
+              <option value="setback">Setback — what went wrong</option>
+              <option value="pattern">Pattern I noticed</option>
+              <option value="gratitude">Gratitude / wins</option>
+              <option value="letter">Letter to future self</option>
+              <option value="free">Free write</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>How are you feeling right now? (1–10)</label>
+            <div class="range-row">
+              <input type="range" min="1" max="10" step="1" value="5" id="j-mood"
+                oninput="document.getElementById('j-mood-out').textContent=this.value; updateMoodLabel(this.value)">
+              <span class="range-val" id="j-mood-out">5</span>
+            </div>
+            <div id="j-mood-label" style="font-size:11px; color:var(--muted); font-family:var(--font-mono); margin-top:4px;">Neutral</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label>Title <span style="color:var(--muted); font-size:11px;">(optional)</span></label>
+          <input type="text" id="j-title" placeholder="e.g. Why I keep revenge trading, The real reason I need Thailand...">
+        </div>
+
+        <!-- GUIDED PROMPTS -->
+        <div id="j-prompts" style="margin-bottom:12px;"></div>
+
+        <div class="form-row">
+          <label>Write it out</label>
+          <textarea id="j-body" placeholder="Start writing..." style="min-height:180px; line-height:1.8;"></textarea>
+        </div>
+
+        <div class="form-row">
+          <label>Tags <span style="color:var(--muted); font-size:11px;">(comma separated)</span></label>
+          <input type="text" id="j-tags" placeholder="e.g. fomo, revenge, discipline, family, progress">
+        </div>
+
+        <div id="j-error" style="font-size:12px; color:var(--danger); min-height:16px; margin-bottom:8px;"></div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="saveJournalEntry()">Save entry</button>
+          <button class="btn btn-ghost" onclick="clearJournalForm()">Clear</button>
+        </div>
+      </div>
+
+      <!-- FILTERS + SEARCH -->
+      <div class="card" style="margin-bottom:16px;">
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <input type="text" id="j-search" placeholder="Search entries..." style="flex:1; min-width:160px;" oninput="renderJournalEntries()">
+          <select id="j-filter-type" style="width:auto;" onchange="renderJournalEntries()">
+            <option value="">All types</option>
+            <option value="reflection">Daily reflection</option>
+            <option value="breakthrough">Breakthrough</option>
+            <option value="setback">Setback</option>
+            <option value="pattern">Pattern</option>
+            <option value="gratitude">Gratitude</option>
+            <option value="letter">Letter to self</option>
+            <option value="free">Free write</option>
+          </select>
+          <select id="j-filter-mood" style="width:auto;" onchange="renderJournalEntries()">
+            <option value="">All moods</option>
+            <option value="high">High (8–10)</option>
+            <option value="mid">Neutral (4–7)</option>
+            <option value="low">Low (1–3)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ENTRIES -->
+      <div id="journal-entries-list"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const DEFAULT_ACCOUNTS = [
+  { id:'ts1', name:'Topstep #1', firm:'Topstep', target:1900, weeklyEarned:0, active:true },
+  { id:'ts2', name:'Topstep #2', firm:'Topstep', target:1900, weeklyEarned:0, active:true },
+  { id:'ap1', name:'Apex #1',    firm:'Apex',    target:1900, weeklyEarned:0, active:true },
+  { id:'ap2', name:'Apex #2',    firm:'Apex',    target:1900, weeklyEarned:0, active:true },
+  { id:'ap3', name:'Apex #3',    firm:'Apex',    target:1900, weeklyEarned:0, active:true },
+  { id:'ap4', name:'Apex #4',    firm:'Apex',    target:1900, weeklyEarned:0, active:true },
+  { id:'lc1', name:'Lucid #1',   firm:'Lucid',   target:1900, weeklyEarned:0, active:true },
+  { id:'lc2', name:'Lucid #2',   firm:'Lucid',   target:1900, weeklyEarned:0, active:true },
+];
+
+const DEFAULT_STATE = {
+  trades: [],
+  payouts: [],
+  streak: [],
+  customRules: [],
+  rituals: [],
+  journal: [],
+  goal: { saved: 0, weeksDone: 0 },
+  accounts: DEFAULT_ACCOUNTS
+};
+
+let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('discipline-journal-v2');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      state = { ...DEFAULT_STATE, ...parsed };
+      // ensure accounts is always an array
+      if (!Array.isArray(state.accounts)) state.accounts = DEFAULT_ACCOUNTS;
+    }
+  } catch(e) { state = JSON.parse(JSON.stringify(DEFAULT_STATE)); }
+}
+
+function saveState() {
+  try { localStorage.setItem('discipline-journal-v2', JSON.stringify(state)); } catch(e) {}
+}
+
+
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+function switchPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  const panels = ['dashboard','pre','log','fomo','accounts','rules','goal'];
+  const navItems = document.querySelectorAll('.nav-item');
+  const map = { dashboard:0, pre:1, log:2, fomo:3, accounts:4, rules:5, goal:6, mindset:7 };
+  if (navItems[map[name]]) navItems[map[name]].classList.add('active');
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'pre') renderRitualLog();
+  if (name === 'log') renderTradeLog();
+  if (name === 'accounts') renderAccounts();
+  if (name === 'goal') renderGoal();
+  if (name === 'rules') renderCustomRules();
+  if (name === 'mindset') { renderJournalEntries(); updatePrompts(); }
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function today() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function todayLabel() {
+  return new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+}
+
+function fmt(n) {
+  return (n >= 0 ? '+$' : '-$') + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+function fmtAbs(n) {
+  return '$' + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────────────────────────
+function activeAccounts() { return state.accounts.filter(a => a.active !== false); }
+
+function weeklyTarget() { return activeAccounts().reduce((s,a) => s + (a.target||1900), 0); }
+
+function renderDashboard() {
+  document.getElementById('dash-date').textContent = todayLabel();
+  document.getElementById('log-date-label').textContent = todayLabel();
+
+  const saved = state.goal.saved || 0;
+  const weeksDone = state.goal.weeksDone || 0;
+  const goalAmt = state.goal.target || 50000;
+  const pct = Math.min(100, (saved / goalAmt) * 100);
+
+  const activeActs = activeAccounts();
+  const wTarget = weeklyTarget();
+
+  document.getElementById('dash-weekly-target').textContent = fmtAbs(wTarget);
+  document.getElementById('dash-weekly-sub').textContent = activeActs.length + ' accts × avg $' + (activeActs.length ? Math.round(wTarget/activeActs.length).toLocaleString() : 0);
+  document.getElementById('dash-saved').textContent = fmtAbs(saved);
+  document.getElementById('dash-saved-pct').textContent = pct.toFixed(1) + '% of goal';
+  document.getElementById('dash-weeks-left').textContent = Math.max(0, 16 - weeksDone);
+  document.getElementById('dash-goal-pct').textContent = pct.toFixed(1) + '%';
+  document.getElementById('dash-goal-bar').style.width = pct + '%';
+
+  const todayTrades = state.trades.filter(t => t.date === today());
+  const todayPnl = todayTrades.reduce((s, t) => s + t.pnl, 0);
+  document.getElementById('dash-trade-count').textContent = todayTrades.length;
+  document.getElementById('dash-today-pnl').textContent = 'P&L: ' + fmt(todayPnl);
+
+  document.getElementById('sidebar-saved').textContent = fmtAbs(saved);
+  document.getElementById('sidebar-pct').textContent = pct.toFixed(1) + '% of $' + goalAmt.toLocaleString();
+  document.getElementById('sidebar-bar').style.width = pct + '%';
+
+  renderStreak();
+  renderDashAlerts(todayTrades, todayPnl);
+}
+
+function renderStreak() {
+  const container = document.getElementById('streak-dots');
+  container.innerHTML = '';
+  for (let i = 0; i < 14; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'streak-dot';
+    if (state.streak[i] === true) dot.classList.add('good');
+    else if (state.streak[i] === false) dot.classList.add('bad');
+    else dot.classList.add('empty');
+    dot.textContent = i + 1;
+    container.appendChild(dot);
+  }
+  const good = state.streak.filter(s => s === true);
+  const consecutive = (() => {
+    let c = 0;
+    for (let i = state.streak.length - 1; i >= 0; i--) {
+      if (state.streak[i] === true) c++; else break;
+    }
+    return c;
+  })();
+  document.getElementById('streak-label').textContent = consecutive + ' disciplined day' + (consecutive !== 1 ? 's' : '') + ' in a row (' + good.length + ' total)';
+}
+
+function markStreak(good) {
+  if (state.streak.length >= 14) state.streak.shift();
+  state.streak.push(good);
+  saveState();
+  renderStreak();
+}
+
+function renderDashAlerts(todayTrades, todayPnl) {
+  const container = document.getElementById('dash-alerts');
+  const alerts = [];
+  if (todayPnl <= -950) alerts.push({ type:'danger', msg: 'DAILY STOP-OUT REACHED: You are down $950+ today. Session over. Close all platforms now per Rule R2.' });
+  const consecutiveLosses = (() => {
+    let c = 0;
+    for (let i = todayTrades.length - 1; i >= 0; i--) {
+      if (todayTrades[i].pnl < 0) c++; else break;
+    }
+    return c;
+  })();
+  if (consecutiveLosses >= 3) alerts.push({ type:'danger', msg: '3 consecutive losses: Session over per Rule R4. The market will be here tomorrow.' });
+  const fomoTrades = todayTrades.filter(t => t.setup.includes('FOMO'));
+  if (fomoTrades.length > 0) alerts.push({ type:'warn', msg: fomoTrades.length + ' FOMO trade(s) logged today. Review your pre-trade ritual before next session.' });
+  const stopBreaches = todayTrades.filter(t => t.stop.includes('past stop') || t.stop.includes('No stop'));
+  if (stopBreaches.length > 0) alerts.push({ type:'warn', msg: 'Stop not honored on ' + stopBreaches.length + ' trade(s) today. Rule R5 was broken.' });
+
+  container.innerHTML = alerts.map(a => `<div class="alert alert-${a.type}">${a.msg}</div>`).join('');
+}
+
+// ─── PRE-TRADE ────────────────────────────────────────────────────────────────
+let selectedEmotion = '';
+
+function selectEmotion(el, val) {
+  document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedEmotion = val;
+  const warn = document.getElementById('emotion-warning');
+  const dangerous = { anxious: 'You are anxious. High risk of overtrading to compensate. Consider reduced size or skipping today entirely.', revengeful: 'Revenge mode detected. This state has historically blown accounts. Do NOT open charts today. Come back tomorrow.', fomo: 'FOMO is already active before you trade. Entering with this mindset guarantees impulsive decisions. This is a no-trade day.', desperate: 'Feeling desperate means you need money too badly to trade safely. You will break your rules. Close the laptop. Regroup.' };
+  if (dangerous[val]) { warn.style.display = 'block'; warn.textContent = dangerous[val]; }
+  else warn.style.display = 'none';
+}
+
+function completePre() {
+  const gate    = document.getElementById('pre-gate');
+  const success = document.getElementById('pre-success');
+  const pressure = document.getElementById('pre-pressure').value;
+  const stress   = document.getElementById('pre-stress').value;
+  const dangerous = ['anxious','revengeful','fomo','desperate'];
+  gate.style.display = 'none'; success.style.display = 'none';
+
+  if (dangerous.includes(selectedEmotion)) {
+    gate.style.display = 'block';
+    gate.textContent = 'Ritual blocked: emotional state is high-risk. Do not trade today. Your accounts are safer closed. Rest. Return tomorrow.';
+    saveRitual('blocked', gate.textContent);
+    return;
+  }
+  if (pressure === 'high') {
+    gate.style.display = 'block';
+    gate.textContent = 'Survival mode detected: you feel you NEED money today. This is exactly the state that causes blown accounts. Close your charts.';
+    saveRitual('blocked', gate.textContent);
+    return;
+  }
+  if (stress === 'major') {
+    gate.style.display = 'block';
+    gate.textContent = 'Major external stress detected. Trading with impaired judgment is high risk. Consider skipping or trading smallest size possible.';
+    saveRitual('blocked', gate.textContent);
+    return;
+  }
+  success.style.display = 'block';
+  success.textContent = 'Pre-trade ritual complete. You are cleared to open charts. Trade your plan — nothing else.';
+  saveRitual('cleared', '');
+  setTimeout(() => switchPanel('log'), 1200);
+}
+
+function saveRitual(status, blockReason) {
+  if (!Array.isArray(state.rituals)) state.rituals = [];
+  const ritual = {
+    id:         Date.now(),
+    date:       today(),
+    time:       new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+    status,
+    blockReason,
+    emotion:    selectedEmotion || 'not set',
+    sleep:      document.getElementById('pre-sleep').value,
+    pressure:   document.getElementById('pre-pressure').value,
+    stress:     document.getElementById('pre-stress').value,
+    instrument: document.getElementById('pre-instrument').value || '—',
+    bias:       document.getElementById('pre-bias').value,
+    level:      document.getElementById('pre-level').value || '—',
+    maxTrades:  document.getElementById('pre-max-trades').value,
+    setup:      document.getElementById('pre-setup').value || '—',
+  };
+  state.rituals.unshift(ritual);
+  saveState();
+  renderRitualLog();
+}
+
+function deleteRitual(id) {
+  state.rituals = state.rituals.filter(r => r.id !== id);
+  saveState();
+  renderRitualLog();
+}
+
+function renderRitualLog() {
+  const container = document.getElementById('ritual-log-list');
+  if (!container) return;
+  if (!Array.isArray(state.rituals) || state.rituals.length === 0) {
+    container.innerHTML = '<div class="empty-state">No rituals completed yet. Complete the form above to save your first entry.</div>';
+    return;
+  }
+  container.innerHTML = state.rituals.map(r => {
+    const cleared  = r.status === 'cleared';
+    const statusBadge = cleared
+      ? '<span class="tag tag-success">Cleared to trade</span>'
+      : '<span class="tag tag-danger">Blocked</span>';
+    const emotionColor = ['anxious','revengeful','fomo','desperate'].includes(r.emotion)
+      ? 'color:var(--danger);' : 'color:var(--success);';
+    return `
+    <div style="border:0.5px solid var(--border); border-radius:var(--radius-md); padding:14px 16px; margin-bottom:10px; ${!cleared ? 'border-left:3px solid var(--danger);' : 'border-left:3px solid var(--success);'}">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          ${statusBadge}
+          <span style="font-family:var(--font-mono); font-size:12px; color:var(--muted);">${r.date} &nbsp;at&nbsp; ${r.time||''}</span>
+        </div>
+        <button class="delete-btn" onclick="deleteRitual(${r.id})" title="Delete entry" style="font-size:16px;">&times;</button>
+      </div>
+      ${r.blockReason ? `<div class="alert alert-danger" style="margin-bottom:10px; font-size:12px;">${r.blockReason}</div>` : ''}
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:8px; font-size:12px;">
+        <div style="background:var(--surface); border-radius:var(--radius-md); padding:8px 12px;">
+          <div style="font-family:var(--font-mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; margin-bottom:3px;">Emotion</div>
+          <div style="font-weight:500; ${emotionColor}">${r.emotion}</div>
+        </div>
+        <div style="background:var(--surface); border-radius:var(--radius-md); padding:8px 12px;">
+          <div style="font-family:var(--font-mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; margin-bottom:3px;">Sleep</div>
+          <div style="color:var(--text);">${r.sleep.split('(')[0].trim()}</div>
+        </div>
+        <div style="background:var(--surface); border-radius:var(--radius-md); padding:8px 12px;">
+          <div style="font-family:var(--font-mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; margin-bottom:3px;">Pressure</div>
+          <div style="color:var(--text);">${r.pressure}</div>
+        </div>
+        <div style="background:var(--surface); border-radius:var(--radius-md); padding:8px 12px;">
+          <div style="font-family:var(--font-mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; margin-bottom:3px;">Instrument</div>
+          <div style="color:var(--text);">${r.instrument}</div>
+        </div>
+        <div style="background:var(--surface); border-radius:var(--radius-md); padding:8px 12px;">
+          <div style="font-family:var(--font-mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; margin-bottom:3px;">Bias</div>
+          <div style="color:var(--text);">${r.bias.split('—')[0].trim()}</div>
+        </div>
+        <div style="background:var(--surface); border-radius:var(--radius-md); padding:8px 12px;">
+          <div style="font-family:var(--font-mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; margin-bottom:3px;">Key level</div>
+          <div style="color:var(--text);">${r.level}</div>
+        </div>
+        <div style="background:var(--surface); border-radius:var(--radius-md); padding:8px 12px;">
+          <div style="font-family:var(--font-mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; margin-bottom:3px;">Max trades/acct</div>
+          <div style="color:var(--text);">${r.maxTrades}</div>
+        </div>
+      </div>
+      ${r.setup && r.setup !== '—' ? `
+        <div style="margin-top:8px; background:var(--surface); border-radius:var(--radius-md); padding:8px 12px;">
+          <div style="font-family:var(--font-mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; margin-bottom:4px;">Setup notes</div>
+          <div style="font-size:12px; color:var(--text); line-height:1.6;">${r.setup}</div>
+        </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ─── TRADE LOG ────────────────────────────────────────────────────────────────
+function populateAccountDropdowns() {
+  const active = activeAccounts();
+  const opts = active.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
+  ['log-account','payout-account'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = opts || '<option>No active accounts</option>';
+  });
+}
+
+function logTrade() {
+  const pnl = parseFloat(document.getElementById('log-pnl').value);
+  if (isNaN(pnl)) { document.getElementById('log-alert').style.display='block'; document.getElementById('log-alert').textContent='Please enter a P&L amount.'; return; }
+  document.getElementById('log-alert').style.display='none';
+
+  const trade = {
+    id: Date.now(),
+    date: today(),
+    account: document.getElementById('log-account').value,
+    symbol: document.getElementById('log-symbol').value || '—',
+    dir: document.getElementById('log-dir').value,
+    pnl,
+    setup: document.getElementById('log-setup').value,
+    stop: document.getElementById('log-stop').value,
+    fomo: parseInt(document.getElementById('log-fomo-score').value),
+    note: document.getElementById('log-note').value
+  };
+
+  state.trades.push(trade);
+  saveState();
+  renderTradeLog();
+  renderDashboard();
+  clearLogForm();
+}
+
+function clearLogForm() {
+  document.getElementById('log-symbol').value = '';
+  document.getElementById('log-pnl').value = '';
+  document.getElementById('log-note').value = '';
+  document.getElementById('log-fomo-score').value = 0;
+  document.getElementById('log-fomo-out').textContent = '0';
+  document.getElementById('log-alert').style.display = 'none';
+}
+
+function deleteTrade(id) {
+  if (!confirm('Delete this trade?')) return;
+  state.trades = state.trades.filter(t => t.id !== id);
+  saveState();
+  renderTradeLog();
+  renderDashboard();
+}
+
+function renderTradeLog() {
+  populateAccountDropdowns();
+  const todayTrades = state.trades.filter(t => t.date === today());
+  const todayPnl = todayTrades.reduce((s,t) => s+t.pnl, 0);
+
+  const badge = document.getElementById('today-pnl-badge');
+  if (todayTrades.length > 0) {
+    badge.innerHTML = `<span class="tag ${todayPnl >= 0 ? 'tag-success':'tag-danger'}">${fmt(todayPnl)}</span>`;
+  } else badge.innerHTML = '';
+
+  document.getElementById('today-trades-table').innerHTML = renderTradeTableHTML(todayTrades, true);
+  document.getElementById('all-trades-table').innerHTML = renderTradeTableHTML([...state.trades].reverse(), false);
+}
+
+function renderTradeTableHTML(trades, isToday) {
+  if (!trades.length) return '<div class="empty-state">No trades logged yet.</div>';
+
+  return trades.map(function(t) {
+    var pnlPos    = t.pnl >= 0;
+    var pnlColor  = pnlPos ? 'var(--success)' : 'var(--danger)';
+    var stopOk    = t.stop && t.stop.startsWith('Yes');
+    var stopColor = stopOk ? 'var(--success)' : 'var(--danger)';
+    var stopBg    = stopOk ? 'var(--success-bg)' : 'var(--danger-bg)';
+    var stopShort = stopOk ? 'Honored' :
+                   (t.stop && t.stop.includes('Moved'))     ? 'Moved once' :
+                   (t.stop && t.stop.includes('past stop')) ? 'Held past stop' : 'No stop set';
+    var fomoNum   = t.fomo || 0;
+    var fomoColor = fomoNum >= 7 ? 'var(--danger)' : fomoNum >= 4 ? 'var(--gold)' : 'var(--success)';
+    var fomoBg    = fomoNum >= 7 ? 'var(--danger-bg)' : fomoNum >= 4 ? 'var(--warn-bg)' : 'var(--success-bg)';
+    var isFomo    = t.setup && t.setup.includes('FOMO');
+    var isImpulse = t.setup && t.setup.includes('Impulse');
+    var setupColor = isFomo ? 'var(--danger)' : isImpulse ? 'var(--gold)' : 'var(--success)';
+    var setupBg   = isFomo ? 'var(--danger-bg)' : isImpulse ? 'var(--warn-bg)' : 'var(--success-bg)';
+    var setupShort = isFomo ? 'FOMO' : isImpulse ? 'Impulse' :
+                    (t.setup && t.setup.includes('Reactive')) ? 'Reactive' : 'Planned';
+    var leftBorder = pnlPos ? '3px solid var(--success)' : '3px solid var(--danger)';
+    var dateStr    = isToday ? '' : '<span style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">' + t.date + '</span>';
+    var pnlStr     = fmt(t.pnl);
+    var noteHTML   = t.note
+      ? '<div style="background:var(--surface);border-radius:var(--radius-md);padding:10px 12px;margin-top:2px;">'
+        + '<div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:5px;">Post-trade reflection</div>'
+        + '<div style="font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap;">' + t.note + '</div>'
+        + '</div>'
+      : '';
+
+    return '<div style="background:var(--card-bg);border:0.5px solid var(--border);border-left:' + leftBorder + ';border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px;">'
+
+      // TOP ROW
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:12px;">'
+        + '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+          + dateStr
+          + '<span style="font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--text);">' + t.account + '</span>'
+          + '<span style="font-family:var(--font-mono);font-size:13px;color:var(--muted);">' + t.symbol + '</span>'
+          + '<span style="font-family:var(--font-mono);font-size:11px;background:var(--surface);padding:2px 8px;border-radius:10px;color:var(--muted);">' + t.dir + '</span>'
+        + '</div>'
+        + '<div style="display:flex;align-items:center;gap:10px;">'
+          + '<span style="font-family:var(--font-mono);font-size:18px;font-weight:500;color:' + pnlColor + ';">' + pnlStr + '</span>'
+          + '<button class="delete-btn" onclick="deleteTrade(' + t.id + ')" title="Delete trade" style="font-size:16px;">&times;</button>'
+        + '</div>'
+      + '</div>'
+
+      // BADGES
+      + '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">'
+        + '<div style="background:' + setupBg + ';color:' + setupColor + ';font-family:var(--font-mono);font-size:11px;font-weight:500;padding:4px 10px;border-radius:10px;">' + setupShort + '</div>'
+        + '<div style="background:' + stopBg + ';color:' + stopColor + ';font-family:var(--font-mono);font-size:11px;font-weight:500;padding:4px 10px;border-radius:10px;">Stop: ' + stopShort + '</div>'
+        + '<div style="background:' + fomoBg + ';color:' + fomoColor + ';font-family:var(--font-mono);font-size:11px;font-weight:500;padding:4px 10px;border-radius:10px;">FOMO ' + fomoNum + '/10</div>'
+      + '</div>'
+
+      // DETAIL GRID
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">'
+        + '<div style="background:var(--surface);border-radius:var(--radius-md);padding:8px 12px;">'
+          + '<div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:3px;">Entry type</div>'
+          + '<div style="font-size:12px;color:var(--text);line-height:1.5;">' + (t.setup || '—') + '</div>'
+        + '</div>'
+        + '<div style="background:var(--surface);border-radius:var(--radius-md);padding:8px 12px;">'
+          + '<div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:3px;">Stop discipline</div>'
+          + '<div style="font-size:12px;color:var(--text);line-height:1.5;">' + (t.stop || '—') + '</div>'
+        + '</div>'
+      + '</div>'
+
+      // NOTES
+      + noteHTML
+    + '</div>';
+  }).join('');
+}
+
+// ─── ACCOUNTS (fully dynamic) ─────────────────────────────────────────────────
+const FIRM_COLORS = {
+  'Topstep':'badge-topstep','Apex':'badge-apex','Lucid':'badge-lucid',
+  'MyFundedFutures':'badge-mff','Bulenox':'badge-bulenox','TradeDay':'badge-tradeday',
+  'Funded Trading Plus':'badge-ftp','Take Profit Trader':'badge-tpt'
+};
+function firmBadgeClass(firm) { return FIRM_COLORS[firm] || 'badge-other'; }
+function genId() { return 'acct_' + Date.now() + '_' + Math.floor(Math.random()*9999); }
+
+function clearAddForm() {
+  document.getElementById('new-acct-name').value = '';
+  document.getElementById('new-acct-firm').value = '';
+  document.getElementById('new-acct-target').value = '1900';
+  document.getElementById('add-acct-error').textContent = '';
+}
+
+function addAccount() {
+  const name   = document.getElementById('new-acct-name').value.trim();
+  const firm   = document.getElementById('new-acct-firm').value.trim() || 'Other';
+  const target = parseFloat(document.getElementById('new-acct-target').value) || 1900;
+  const errEl  = document.getElementById('add-acct-error');
+  if (!name) { errEl.textContent = 'Account name is required.'; return; }
+  errEl.textContent = '';
+  if (!Array.isArray(state.accounts)) state.accounts = [];
+  state.accounts.push({ id: genId(), name, firm, target, weeklyEarned: 0, active: true });
+  saveState();
+  clearAddForm();
+  renderAccounts();
+  renderDashboard();
+  populateAccountDropdowns();
+}
+
+function removeAccount(id) {
+  const acct = state.accounts.find(a => a.id === id);
+  if (!acct) return;
+  if (!confirm('Remove "' + acct.name + '"?\n\nTrade history for this account will still be kept.')) return;
+  state.accounts = state.accounts.filter(a => a.id !== id);
+  saveState();
+  renderAccounts();
+  renderDashboard();
+  populateAccountDropdowns();
+}
+
+function toggleAccount(id) {
+  const acct = state.accounts.find(a => a.id === id);
+  if (!acct) return;
+  acct.active = !acct.active;
+  saveState();
+  renderAccounts();
+  renderDashboard();
+  populateAccountDropdowns();
+}
+
+function updateAcctEarned(id, val) {
+  const acct = state.accounts.find(a => a.id === id);
+  if (!acct) return;
+  acct.weeklyEarned = parseFloat(val) || 0;
+  saveState();
+  const barEl = document.getElementById('earnbar-' + id);
+  const pct = Math.min(100, (acct.weeklyEarned / (acct.target||1900)) * 100);
+  if (barEl) { barEl.style.width = pct.toFixed(1) + '%'; barEl.className = 'progress-fill ' + (pct >= 100 ? 'success' : ''); }
+  renderDashboard();
+}
+
+function updateAcctTarget(id, val) {
+  const acct = state.accounts.find(a => a.id === id);
+  if (!acct) return;
+  acct.target = parseFloat(val) || 1900;
+  saveState();
+  renderDashboard();
+}
+
+function resetWeeklyEarned() {
+  if (!confirm('Reset all weekly earned amounts to $0?\n\nDo this at the start of each new week.')) return;
+  state.accounts.forEach(a => { a.weeklyEarned = 0; });
+  saveState();
+  renderAccounts();
+}
+
+function buildAccountRow(a) {
+  const earned  = a.weeklyEarned || 0;
+  const target  = a.target || 1900;
+  const pct     = Math.min(100, (earned / target) * 100);
+  const fillCls = pct >= 100 ? 'success' : '';
+  return `
+  <div class="account-row" style="${!a.active ? 'opacity:0.55;' : ''}">
+    <div style="min-width:120px; font-family:var(--font-mono); font-size:13px; font-weight:500; color:var(--text); white-space:nowrap;">${a.name}</div>
+    <div style="flex-shrink:0; min-width:90px;"><span class="acct-badge ${firmBadgeClass(a.firm)}">${a.firm}</span></div>
+    <div style="flex:1; min-width:60px;">
+      <div class="progress-track" style="height:6px;">
+        <div id="earnbar-${a.id}" class="progress-fill ${fillCls}" style="width:${pct.toFixed(1)}%;"></div>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:3px; font-family:var(--font-mono); font-size:12px; flex-shrink:0; color:var(--muted); white-space:nowrap;">
+      <span>$</span>
+      <input type="number" value="${earned}" min="0" placeholder="0"
+        style="width:65px; padding:4px 6px; font-size:12px; font-family:var(--font-mono);"
+        title="This week's earned"
+        onchange="updateAcctEarned('${a.id}', this.value)">
+      <span>/&nbsp;$</span>
+      <input type="number" value="${target}" min="100"
+        style="width:65px; padding:4px 6px; font-size:12px; font-family:var(--font-mono);"
+        title="Weekly target"
+        onchange="updateAcctTarget('${a.id}', this.value)">
+    </div>
+    <div style="display:flex; gap:6px; flex-shrink:0;">
+      <button class="btn btn-ghost" style="font-size:11px; padding:4px 10px; white-space:nowrap;"
+        onclick="toggleAccount('${a.id}')">${a.active ? 'Pause' : 'Activate'}</button>
+      <button class="delete-btn" onclick="removeAccount('${a.id}')" title="Remove account" style="font-size:16px; line-height:1;">&times;</button>
+    </div>
+  </div>`;
+}
+
+function renderAccounts() {
+  if (!Array.isArray(state.accounts)) state.accounts = [];
+  const active = state.accounts.filter(a => a.active !== false);
+  const paused = state.accounts.filter(a => a.active === false);
+
+  const sumTarget = active.reduce((s,a) => s + (a.target||1900), 0);
+  const sumEarned = active.reduce((s,a) => s + (a.weeklyEarned||0), 0);
+
+  const activeEl = document.getElementById('acct-list-active');
+  if (active.length === 0) {
+    activeEl.innerHTML = '<div class="empty-state">No active accounts. Use the form above to add one.</div>';
+  } else {
+    activeEl.innerHTML =
+      `<div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:4px; font-family:var(--font-mono); font-size:11px; color:var(--muted); padding-bottom:8px; border-bottom:0.5px solid var(--border); margin-bottom:6px;">
+        <span>${active.length} account${active.length!==1?'s':''} &nbsp;&mdash;&nbsp; weekly target: <strong style="color:var(--text);">${fmtAbs(sumTarget)}</strong></span>
+        <span>earned this week: <strong style="color:var(--success);">${fmtAbs(sumEarned)}</strong></span>
+       </div>` + active.map(buildAccountRow).join('');
+  }
+
+  const pausedCard = document.getElementById('paused-accounts-card');
+  const inactiveEl = document.getElementById('acct-list-inactive');
+  if (paused.length > 0 && pausedCard && inactiveEl) {
+    pausedCard.style.display = 'block';
+    inactiveEl.innerHTML = paused.map(buildAccountRow).join('');
+  } else if (pausedCard) {
+    pausedCard.style.display = 'none';
+  }
+
+  renderPayoutHistory();
+}
+
+function logPayout() {
+  const acct = document.getElementById('payout-account').value;
+  const amount = parseFloat(document.getElementById('payout-amount').value);
+  if (!amount) return;
+  state.payouts.push({ id: Date.now(), date: today(), account: acct, amount, note: document.getElementById('payout-note').value });
+  saveState();
+  document.getElementById('payout-amount').value = '';
+  document.getElementById('payout-note').value = '';
+  renderPayoutHistory();
+}
+
+function renderPayoutHistory() {
+  const container = document.getElementById('payout-history');
+  if (!state.payouts.length) { container.innerHTML = ''; return; }
+  const total = state.payouts.reduce((s,p) => s+p.amount, 0);
+  container.innerHTML = `<div class="section-title" style="margin-top:16px;">Payout history &mdash; total: <span style="color:var(--success);">${fmtAbs(total)}</span></div>
+    <div class="trade-table-wrap"><table class="trade-table">
+      <thead><tr><th>Date</th><th>Account</th><th>Amount</th><th>Notes</th><th></th></tr></thead>
+      <tbody>${state.payouts.map(p => `<tr><td>${p.date}</td><td>${p.account}</td><td class="pnl-pos">${fmtAbs(p.amount)}</td><td style="color:var(--muted)">${p.note||'—'}</td><td><button class="delete-btn" onclick="deletePayout(${p.id})">×</button></td></tr>`).join('')}</tbody>
+    </table></div>`;
+}
+
+function deletePayout(id) {
+  state.payouts = state.payouts.filter(p => p.id !== id);
+  saveState();
+  renderPayoutHistory();
+}
+
+// ─── FOMO CHECK ───────────────────────────────────────────────────────────────
+let fomoInterval = null;
+let fomoSecs = 90;
+
+function startFomoTimer() {
+  if (fomoInterval) return;
+  fomoInterval = setInterval(() => {
+    fomoSecs--;
+    const m = Math.floor(fomoSecs / 60);
+    const s = fomoSecs % 60;
+    document.getElementById('fomo-timer').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+    if (fomoSecs <= 0) {
+      clearInterval(fomoInterval); fomoInterval = null;
+      document.getElementById('fomo-timer').textContent = 'Done — evaluate now';
+    }
+  }, 1000);
+}
+
+function resetFomoTimer() {
+  clearInterval(fomoInterval); fomoInterval = null;
+  fomoSecs = 90;
+  document.getElementById('fomo-timer').textContent = '1:30';
+}
+
+function evalFomo() {
+  const ids = ['fc1','fc2','fc3','fc4','fc5','fc6','fc7','fc8'];
+  const checked = ids.filter(id => document.getElementById(id).checked).length;
+  const result = document.getElementById('fomo-result');
+  result.style.display = 'block';
+  if (checked >= 7) {
+    result.className = 'alert alert-success';
+    result.textContent = checked + '/8 checks passed. This trade has been evaluated with discipline. If stop and target are set — you may enter. Trade the plan.';
+  } else if (checked >= 5) {
+    result.className = 'alert alert-warn';
+    result.textContent = checked + '/8 checks passed. Marginal conviction. If you enter: reduce size by 50%, hard stop only, no adding to position.';
+  } else {
+    result.className = 'alert alert-danger';
+    result.textContent = 'Only ' + checked + '/8 checks passed. This is FOMO — not a trade. Do not enter. The market will offer another setup. Your family is waiting in Thailand.';
+  }
+}
+
+function resetFomo() {
+  ['fc1','fc2','fc3','fc4','fc5','fc6','fc7','fc8'].forEach(id => document.getElementById(id).checked = false);
+  document.getElementById('fomo-result').style.display = 'none';
+  resetFomoTimer();
+}
+
+// ─── RULES ────────────────────────────────────────────────────────────────────
+function addCustomRule() {
+  const input = document.getElementById('custom-rule-input');
+  if (!input.value.trim()) return;
+  state.customRules.push({ id: Date.now(), text: input.value.trim() });
+  saveState();
+  input.value = '';
+  renderCustomRules();
+}
+
+function deleteCustomRule(id) {
+  state.customRules = state.customRules.filter(r => r.id !== id);
+  saveState();
+  renderCustomRules();
+}
+
+function renderCustomRules() {
+  const container = document.getElementById('custom-rules-list');
+  container.innerHTML = state.customRules.map((r, i) => `
+    <div class="rule-card">
+      <span class="rule-num">R${9+i}</span>
+      <span class="rule-text">${r.text}</span>
+      <button class="delete-btn" onclick="deleteCustomRule(${r.id})">×</button>
+    </div>`).join('');
+}
+
+// ─── GOAL ─────────────────────────────────────────────────────────────────────
+function updateGoalLive(val) {
+  const saved = parseFloat(val) || 0;
+  const pct = Math.min(100, (saved / 50000) * 100);
+  document.getElementById('goal-pct-label').textContent = pct.toFixed(1) + '%';
+  document.getElementById('goal-main-bar').style.width = pct + '%';
+}
+
+function updateWeeksLive(val) { }
+
+function saveGoalProgress() {
+  state.goal.saved = parseFloat(document.getElementById('goal-saved-input').value) || 0;
+  state.goal.weeksDone = parseInt(document.getElementById('goal-weeks-done').value) || 0;
+  state.goal.target = parseFloat(document.getElementById('goal-target-input').value) || 50000;
+  saveState();
+  renderDashboard();
+  renderGoal();
+}
+
+function renderGoal() {
+  const saved = state.goal.saved || 0;
+  const weeksDone = state.goal.weeksDone || 0;
+  const goalAmt = state.goal.target || 50000;
+  const pct = Math.min(100, (saved / goalAmt) * 100);
+
+  if (document.getElementById('goal-saved-input').value === '') {
+    document.getElementById('goal-saved-input').value = saved || '';
+    document.getElementById('goal-weeks-done').value = weeksDone || '';
+    document.getElementById('goal-target-input').value = goalAmt;
+  }
+
+  document.getElementById('goal-pct-label').textContent = pct.toFixed(1) + '%';
+  document.getElementById('goal-main-bar').style.width = pct + '%';
+
+  const wTarget = weeklyTarget();
+  const activeCount = activeAccounts().length;
+  document.getElementById('goal-weekly-display').textContent = fmtAbs(wTarget) + '/wk (' + activeCount + ' accounts)';
+
+  const container = document.getElementById('week-schedule');
+  const rows = [];
+  let cumulative = 0;
+  const weeklySave = goalAmt / 16;
+  for (let i = 1; i <= 16; i++) {
+    cumulative += weeklySave;
+    const done = i <= weeksDone;
+    rows.push(`<div class="week-row ${done ? 'week-completed' : ''}">
+      <span class="week-label">Week ${i} ${done ? '✓' : ''}</span>
+      <span style="font-family:var(--font-mono); font-size:12px; color:var(--muted);">Gross ${fmtAbs(wTarget)}</span>
+      <span class="week-saved">Save ${fmtAbs(weeklySave)}</span>
+      <span style="font-family:var(--font-mono); font-size:12px; color:var(--muted);">→ ${fmtAbs(cumulative)}</span>
+    </div>`);
+  }
+  container.innerHTML = rows.join('');
+
+  document.getElementById('sidebar-saved').textContent = fmtAbs(saved);
+  document.getElementById('sidebar-pct').textContent = pct.toFixed(1) + '% of ' + fmtAbs(goalAmt);
+  document.getElementById('sidebar-bar').style.width = pct + '%';
+}
+
+
+// ─── MINDSET JOURNAL ─────────────────────────────────────────────────────────
+const JOURNAL_PROMPTS = {
+  reflection: [
+    "What happened today — not just in the market, but in your head?",
+    "What emotion showed up most? Where did you feel it in your body?",
+    "Did you follow your plan? If not — what was the real reason?",
+    "What's one thing you'd do differently tomorrow?"
+  ],
+  breakthrough: [
+    "Describe the moment. What shifted?",
+    "What belief or pattern did you break through?",
+    "What made this time different from before?",
+    "How can you protect and repeat this?"
+  ],
+  setback: [
+    "What happened? Be completely honest — no editing.",
+    "What were you feeling in the 30 minutes before it went wrong?",
+    "Was this a new mistake or an old pattern repeating?",
+    "What would a disciplined version of you have done instead?"
+  ],
+  pattern: [
+    "Describe the pattern you've noticed.",
+    "How long has this pattern been running your trading?",
+    "What does this pattern protect you from? (fear, failure, success?)",
+    "What would breaking this pattern cost you emotionally?"
+  ],
+  gratitude: [
+    "What went right today — no matter how small?",
+    "Who or what are you grateful for in this journey?",
+    "What progress have you made that you haven't acknowledged?",
+    "What does Thailand represent beyond the money?"
+  ],
+  letter: [
+    "What do you want your future self in Thailand to know about this moment?",
+    "What are you sacrificing right now, and why is it worth it?",
+    "What would you tell yourself 6 months ago?"
+  ],
+  free: [
+    "What's on your mind? Don't edit — just write."
+  ]
+};
+
+const MOOD_LABELS = {
+  1:'Struggling — barely holding on', 2:'Very low', 3:'Low — something is off',
+  4:'Below average', 5:'Neutral', 6:'Okay', 7:'Pretty good',
+  8:'Strong — focused and clear', 9:'Very strong', 10:'Locked in — peak state'
+};
+
+const TYPE_LABELS = {
+  reflection:'Daily reflection', breakthrough:'Breakthrough', setback:'Setback',
+  pattern:'Pattern', gratitude:'Gratitude', letter:'Letter to self', free:'Free write'
+};
+
+const TYPE_COLORS = {
+  reflection:'tag-success', breakthrough:'tag-success', setback:'tag-danger',
+  pattern:'tag-warn', gratitude:'tag-success', letter:'tag-warn', free:''
+};
+
+function updateMoodLabel(val) {
+  const el = document.getElementById('j-mood-label');
+  if (el) el.textContent = MOOD_LABELS[val] || '';
+}
+
+function updatePrompts() {
+  const type = document.getElementById('j-type') ? document.getElementById('j-type').value : 'reflection';
+  const prompts = JOURNAL_PROMPTS[type] || [];
+  const container = document.getElementById('j-prompts');
+  if (!container) return;
+  if (!prompts.length) { container.innerHTML = ''; return; }
+  container.innerHTML = '<div style="background:var(--gold-light); border-radius:var(--radius-md); padding:10px 14px; margin-bottom:4px;">' +
+    '<div style="font-family:var(--font-mono); font-size:10px; color:var(--gold-dim); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;">Guided prompts — answer what resonates</div>' +
+    prompts.map((p,i) => `<div style="font-size:13px; color:var(--gold-dim); padding:4px 0; display:flex; gap:8px;"><span style="font-family:var(--font-mono); flex-shrink:0;">${i+1}.</span><span>${p}</span></div>`).join('') +
+    '</div>';
+}
+
+function clearJournalForm() {
+  document.getElementById('j-title').value = '';
+  document.getElementById('j-body').value = '';
+  document.getElementById('j-tags').value = '';
+  document.getElementById('j-mood').value = 5;
+  document.getElementById('j-mood-out').textContent = '5';
+  document.getElementById('j-mood-label').textContent = 'Neutral';
+  document.getElementById('j-error').textContent = '';
+}
+
+function saveJournalEntry() {
+  const body = document.getElementById('j-body').value.trim();
+  const errEl = document.getElementById('j-error');
+  if (!body) { errEl.textContent = 'Write something first — even one sentence counts.'; return; }
+  errEl.textContent = '';
+  if (!Array.isArray(state.journal)) state.journal = [];
+  const rawTags = document.getElementById('j-tags').value;
+  const tags = rawTags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+  const entry = {
+    id:    Date.now(),
+    date:  today(),
+    time:  new Date().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' }),
+    type:  document.getElementById('j-type').value,
+    mood:  parseInt(document.getElementById('j-mood').value),
+    title: document.getElementById('j-title').value.trim(),
+    body,
+    tags,
+    edited: false
+  };
+  state.journal.unshift(entry);
+  saveState();
+  clearJournalForm();
+  renderJournalEntries();
+  // scroll to entries
+  const el = document.getElementById('journal-entries-list');
+  if (el) el.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function deleteJournalEntry(id) {
+  if (!confirm('Delete this journal entry? This cannot be undone.')) return;
+  state.journal = state.journal.filter(e => e.id !== id);
+  saveState();
+  renderJournalEntries();
+}
+
+function toggleJournalExpand(id) {
+  const el = document.getElementById('j-body-' + id);
+  const btn = document.getElementById('j-expand-btn-' + id);
+  if (!el || !btn) return;
+  const expanded = el.getAttribute('data-expanded') === 'true';
+  el.setAttribute('data-expanded', !expanded);
+  el.style.webkitLineClamp = expanded ? '4' : 'unset';
+  el.style.overflow = expanded ? 'hidden' : 'visible';
+  btn.textContent = expanded ? 'Read more' : 'Show less';
+}
+
+function renderJournalEntries() {
+  const container = document.getElementById('journal-entries-list');
+  if (!container) return;
+  if (!Array.isArray(state.journal) || state.journal.length === 0) {
+    container.innerHTML = '<div class="empty-state" style="padding:2rem;">No journal entries yet. Write your first entry above — even just a few sentences about where you are right now.</div>';
+    return;
+  }
+
+  const search     = (document.getElementById('j-search')?.value || '').toLowerCase();
+  const filterType = document.getElementById('j-filter-type')?.value || '';
+  const filterMood = document.getElementById('j-filter-mood')?.value || '';
+
+  let entries = [...state.journal];
+
+  if (filterType) entries = entries.filter(e => e.type === filterType);
+  if (filterMood === 'high') entries = entries.filter(e => e.mood >= 8);
+  else if (filterMood === 'mid') entries = entries.filter(e => e.mood >= 4 && e.mood <= 7);
+  else if (filterMood === 'low') entries = entries.filter(e => e.mood <= 3);
+  if (search) entries = entries.filter(e =>
+    (e.title||'').toLowerCase().includes(search) ||
+    (e.body||'').toLowerCase().includes(search) ||
+    (e.tags||[]).some(t => t.includes(search))
+  );
+
+  if (!entries.length) {
+    container.innerHTML = '<div class="empty-state">No entries match your filters.</div>';
+    return;
+  }
+
+  const moodBar = (mood) => {
+    const pct = (mood / 10) * 100;
+    const color = mood >= 7 ? 'var(--success)' : mood >= 4 ? 'var(--gold)' : 'var(--danger)';
+    return `<div style="display:flex; align-items:center; gap:8px;">
+      <div style="flex:1; height:4px; background:var(--surface); border-radius:2px; overflow:hidden;">
+        <div style="width:${pct}%; height:100%; background:${color}; border-radius:2px;"></div>
+      </div>
+      <span style="font-family:var(--font-mono); font-size:11px; color:var(--muted); min-width:16px;">${mood}</span>
+    </div>`;
+  };
+
+  container.innerHTML = entries.map(e => {
+    const typeCls   = TYPE_COLORS[e.type] || '';
+    const typeLabel = TYPE_LABELS[e.type] || e.type;
+    const isLong    = (e.body||'').length > 300;
+    const tagsHTML  = (e.tags||[]).length
+      ? e.tags.map(t => `<span style="display:inline-block; font-size:10px; font-family:var(--font-mono); background:var(--surface); color:var(--muted); padding:2px 8px; border-radius:10px; margin:2px 3px 2px 0;">#${t}</span>`).join('')
+      : '';
+
+    return `
+    <div style="background:var(--card-bg); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:1.25rem; margin-bottom:14px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <span class="tag ${typeCls}" style="font-size:11px; padding:3px 10px; border-radius:10px; font-family:var(--font-mono); font-weight:500;
+            background:${e.type==='setback'?'var(--danger-bg)':e.type==='breakthrough'||e.type==='gratitude'?'var(--success-bg)':'var(--gold-light)'};
+            color:${e.type==='setback'?'var(--danger)':e.type==='breakthrough'||e.type==='gratitude'?'var(--success)':'var(--gold-dim)'};"
+          >${typeLabel}</span>
+          <span style="font-family:var(--font-mono); font-size:11px; color:var(--muted);">${e.date} &nbsp;·&nbsp; ${e.time||''}</span>
+        </div>
+        <button class="delete-btn" onclick="deleteJournalEntry(${e.id})" title="Delete entry" style="font-size:16px;">&times;</button>
+      </div>
+
+      ${e.title ? `<div style="font-family:var(--font-serif); font-size:16px; font-weight:500; color:var(--text); margin-bottom:8px; line-height:1.4;">${e.title}</div>` : ''}
+
+      <div style="margin-bottom:10px;">
+        <div style="font-size:11px; font-family:var(--font-mono); color:var(--muted); margin-bottom:4px;">Mood</div>
+        ${moodBar(e.mood)}
+        <div style="font-size:11px; color:var(--muted); margin-top:3px; font-family:var(--font-mono);">${MOOD_LABELS[e.mood]||''}</div>
+      </div>
+
+      <div id="j-body-${e.id}" data-expanded="false" style="font-size:14px; color:var(--text); line-height:1.8; white-space:pre-wrap; overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:${isLong?'4':'unset'}; margin-bottom:${isLong?'6':'10'}px;">${e.body}</div>
+      ${isLong ? `<button id="j-expand-btn-${e.id}" onclick="toggleJournalExpand(${e.id})" style="background:none; border:none; color:var(--gold); font-size:12px; cursor:pointer; font-family:var(--font-mono); padding:0; margin-bottom:10px;">Read more</button>` : ''}
+
+      ${tagsHTML ? `<div style="margin-top:6px;">${tagsHTML}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+loadState();
+renderDashboard();
+renderGoal();
+renderCustomRules();
+renderAccounts();
+populateAccountDropdowns();
+renderRitualLog();
+renderJournalEntries();
+</script>
+</body>
+</html>
