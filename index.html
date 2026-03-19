@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discipline First — Trading Journal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@400;500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#C9A84C;--gold-light:#F5E9C8;--gold-dim:#8A6E2F;
+  --danger:#C94C4C;--danger-bg:#FAEDED;
+  --success:#2E7D52;--success-bg:#E8F5EE;
+  --warn-bg:#FFF8E8;--warn-text:#8A6E2F;
+  --border:rgba(0,0,0,0.1);
+  --card-bg:#ffffff;--surface:#f6f5f2;--page-bg:#f0ede8;
+  --text:#1a1a18;--muted:#6b6b67;
+  --font-sans:'DM Sans',sans-serif;--font-mono:'DM Mono',monospace;--font-serif:'Playfair Display',serif;
+  --radius-md:8px;--radius-lg:12px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --card-bg:#1e1e1c;--surface:#282825;--page-bg:#141412;
+  --text:#f0ede8;--muted:#9a9a95;--border:rgba(255,255,255,0.1);
+  --gold-light:#3a2e10;--gold-dim:#e8c06a;
+  --danger-bg:#2e1010;--success-bg:#0e2418;--warn-bg:#2a2210;--warn-text:#e8c06a;
+}}
+html,body{height:100%;font-family:var(--font-sans);background:var(--page-bg);color:var(--text);font-size:15px}
+.app{display:flex;min-height:100vh}
+.sidebar{width:220px;flex-shrink:0;background:var(--card-bg);border-right:0.5px solid var(--border);display:flex;flex-direction:column;padding:1.5rem 0;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100}
+.sidebar-logo{padding:0 1.25rem 1.5rem;border-bottom:0.5px solid var(--border);margin-bottom:.75rem}
+.sidebar-logo .gold-bar{width:32px;height:3px;background:var(--gold);border-radius:2px;margin-bottom:8px}
+.sidebar-logo h1{font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--text);line-height:1.3}
+.sidebar-logo p{font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.08em}
+.nav-section{padding:0 .75rem;margin-bottom:.5rem}
+.nav-label{font-family:var(--font-mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;padding:0 .5rem;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius-md);cursor:pointer;font-size:13px;color:var(--muted);transition:all .15s;border:none;background:none;width:100%;text-align:left;font-family:var(--font-sans)}
+.nav-item:hover{background:var(--surface);color:var(--text)}
+.nav-item.active{background:var(--gold-light);color:var(--gold-dim);font-weight:500}
+.nav-item .icon{width:16px;text-align:center;font-size:14px;flex-shrink:0}
+.sidebar-bottom{margin-top:auto;padding:1rem 1.25rem 0;border-top:0.5px solid var(--border)}
+.tp-label{font-family:var(--font-mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+.tp-amount{font-family:var(--font-mono);font-size:18px;font-weight:500;color:var(--gold)}
+.tp-sub{font-size:11px;color:var(--muted);margin-top:2px;margin-bottom:8px}
+.progress-track{height:6px;background:var(--surface);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;background:var(--gold);transition:width .4s}
+.progress-fill.success{background:var(--success)}
+.progress-fill.danger{background:var(--danger)}
+.main{margin-left:220px;flex:1;padding:2rem;max-width:900px}
+.panel{display:none}
+.panel.active{display:block}
+.card{background:var(--card-bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:16px}
+.page-title{font-family:var(--font-serif);font-size:22px;font-weight:500;color:var(--text);margin-bottom:4px}
+.page-sub{font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-bottom:1.5rem;text-transform:uppercase;letter-spacing:.05em}
+.section-title{font-family:var(--font-mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;font-weight:500}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}
+.metric-card{background:var(--surface);border-radius:var(--radius-md);padding:1rem}
+.metric-card .m-label{font-family:var(--font-mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.metric-card .m-value{font-family:var(--font-mono);font-size:20px;font-weight:500;color:var(--text);margin-top:6px}
+.metric-card .m-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.alert{border-radius:var(--radius-md);padding:12px 16px;font-size:13px;margin-bottom:14px;border-left:3px solid;line-height:1.6}
+.alert-danger{background:var(--danger-bg);border-color:var(--danger);color:var(--danger)}
+.alert-success{background:var(--success-bg);border-color:var(--success);color:var(--success)}
+.alert-warn{background:var(--warn-bg);border-color:var(--gold);color:var(--warn-text)}
+label{font-size:13px;color:var(--muted);display:block;margin-bottom:5px}
+input[type=text],input[type=number],select,textarea{width:100%;padding:8px 12px;font-family:var(--font-sans);font-size:14px;border:0.5px solid var(--border);border-radius:var(--radius-md);background:var(--surface);color:var(--text);outline:none;transition:border .15s}
+input[type=text]:focus,input[type=number]:focus,select:focus,textarea:focus{border-color:var(--gold)}
+textarea{resize:vertical;min-height:80px;line-height:1.5}
+.form-row{margin-bottom:14px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.btn{padding:9px 20px;font-size:13px;font-weight:500;border-radius:var(--radius-md);cursor:pointer;font-family:var(--font-sans);transition:all .15s}
+.btn-primary{background:var(--gold);color:#fff;border:none}
+.btn-primary:hover{background:var(--gold-dim)}
+.btn-ghost{background:transparent;color:var(--muted);border:0.5px solid var(--border)}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+.btn-danger{background:transparent;color:var(--danger);border:0.5px solid var(--danger)}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+.progress-bar-wrap{margin-bottom:16px}
+.progress-label{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-bottom:6px}
+.emotion-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.emotion-btn{padding:9px 4px;font-size:12px;border:0.5px solid var(--border);border-radius:var(--radius-md);background:var(--surface);color:var(--muted);cursor:pointer;text-align:center;transition:all .15s;font-family:var(--font-sans)}
+.emotion-btn.selected{border-color:var(--gold);background:var(--gold-light);color:var(--gold-dim);font-weight:500}
+.emotion-btn.danger-emotion.selected{border-color:var(--danger);background:var(--danger-bg);color:var(--danger)}
+.rule-card{border:0.5px solid var(--border);border-radius:var(--radius-md);padding:12px 16px;margin-bottom:8px;display:flex;align-items:flex-start;gap:14px}
+.rule-num{font-family:var(--font-mono);font-size:11px;font-weight:500;color:var(--gold);background:var(--gold-light);padding:3px 8px;border-radius:10px;flex-shrink:0;margin-top:2px}
+.rule-text{font-size:13px;color:var(--text);line-height:1.6}
+.fomo-check{background:var(--surface);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.fomo-check input[type=checkbox]{width:18px;height:18px;flex-shrink:0;accent-color:var(--gold);cursor:pointer}
+.fomo-check span{font-size:13px;color:var(--text);line-height:1.5}
+.account-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid var(--border);flex-wrap:wrap}
+.account-row:last-child{border-bottom:none}
+.acct-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500;font-family:var(--font-mono);flex-shrink:0}
+.badge-topstep{background:#E8F0FA;color:#1A4F9A}
+.badge-apex{background:#F0E8FA;color:#5A1A9A}
+.badge-lucid{background:#E8FAF0;color:#1A6E3A}
+.badge-mff{background:#FAF0E8;color:#9A4E1A}
+.badge-bulenox{background:#E8F6FA;color:#1A6E8A}
+.badge-tradeday{background:#FAF4E8;color:#8A6E1A}
+.badge-ftp{background:#F0FAE8;color:#3A6E1A}
+.badge-tpt{background:#FAE8F0;color:#8A1A6E}
+.badge-other{background:var(--surface);color:var(--muted);border:0.5px solid var(--border)}
+.streak-dots{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.streak-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:var(--font-mono);flex-shrink:0;cursor:pointer}
+.streak-dot.good{background:var(--success-bg);color:var(--success);border:0.5px solid var(--success)}
+.streak-dot.bad{background:var(--danger-bg);color:var(--danger);border:0.5px solid var(--danger)}
+.streak-dot.empty{background:var(--surface);color:var(--muted);border:0.5px dashed var(--border)}
+.timer-display{font-family:var(--font-mono);font-size:48px;font-weight:500;color:var(--gold);text-align:center;padding:1.5rem;background:var(--surface);border-radius:var(--radius-lg);margin-bottom:14px;letter-spacing:.05em}
+.week-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid var(--border);flex-wrap:wrap;gap:6px}
+.week-row:last-child{border-bottom:none}
+.week-completed{opacity:.5}
+.delete-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:2px 6px;border-radius:4px;line-height:1}
+.delete-btn:hover{color:var(--danger);background:var(--danger-bg)}
+.empty-state{text-align:center;padding:2rem;color:var(--muted);font-size:13px;font-family:var(--font-mono)}
+.tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-family:var(--font-mono);font-weight:500}
+.tag-warn{background:var(--warn-bg);color:var(--warn-text)}
+.tag-danger{background:var(--danger-bg);color:var(--danger)}
+.tag-success{background:var(--success-bg);color:var(--success)}
+input[type=range]{accent-color:var(--gold)}
+.range-row{display:flex;align-items:center;gap:12px}
+.range-row input{flex:1}
+.range-val{font-family:var(--font-mono);font-size:14px;font-weight:500;min-width:24px;text-align:right}
+hr{border:none;border-top:0.5px solid var(--border);margin:1.5rem 0}
+@media(max-width:680px){
+  .sidebar{width:60px}
+  .sidebar-logo p,.nav-label{display:none}
+  .sidebar-logo h1{font-size:12px}
+  .nav-item span:not(.icon){display:none}
+  .main{margin-left:60px;padding:1rem}
+  .grid4{grid-template-columns:1fr 1fr}
+  .form-grid{grid-template-columns:1fr}
+  .emotion-grid{grid-template-columns:repeat(2,1fr)}
+  .grid2,.grid3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="gold-bar"></div>
+    <h1>Discipline First</h1>
+    <p>Trading Journal</p>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Daily</div>
+    <button class="nav-item active" onclick="switchPanel('dashboard')"><span class="icon">◈</span><span>Dashboard</span></button>
+    <button class="nav-item" onclick="switchPanel('pre')"><span class="icon">◎</span><span>Pre-trade ritual</span></button>
+    <button class="nav-item" onclick="switchPanel('log')"><span class="icon">≡</span><span>Trade log</span></button>
+    <button class="nav-item" onclick="switchPanel('fomo')"><span class="icon">⚑</span><span>FOMO check</span></button>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Management</div>
+    <button class="nav-item" onclick="switchPanel('accounts')"><span class="icon">⊞</span><span>Accounts</span></button>
+    <button class="nav-item" onclick="switchPanel('rules')"><span class="icon">◻</span><span>My rules</span></button>
+    <button class="nav-item" onclick="switchPanel('goal')"><span class="icon">✦</span><span>Thailand goal</span></button>
+    <button class="nav-item" onclick="switchPanel('mindset')"><span class="icon">✎</span><span>Mindset journal</span></button>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="tp-label">Goal progress</div>
+    <div class="tp-amount" id="sidebar-saved">$0</div>
+    <div class="tp-sub" id="sidebar-pct">0% of $50,000</div>
+    <div class="progress-track"><div class="progress-fill" id="sidebar-bar" style="width:0%"></div></div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- DASHBOARD -->
+<div class="panel active" id="panel-dashboard">
+  <div class="page-title">Dashboard</div>
+  <div class="page-sub" id="dash-date"></div>
+  <div class="grid4">
+    <div class="metric-card"><div class="m-label">Weekly target</div><div class="m-value" id="dash-weekly-target">$0</div><div class="m-sub" id="dash-weekly-sub">0 accounts</div></div>
+    <div class="metric-card"><div class="m-label">Saved total</div><div class="m-value" id="dash-saved">$0</div><div class="m-sub" id="dash-saved-pct">0% of goal</div></div>
+    <div class="metric-card"><div class="m-label">Weeks left</div><div class="m-value" id="dash-weeks-left">16</div><div class="m-sub">of 16 total</div></div>
+    <div class="metric-card"><div class="m-label">Today's P&amp;L</div><div class="m-value" id="dash-today-pnl">$0</div><div class="m-sub" id="dash-trade-count">0 trades</div></div>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-label"><span>Thailand goal</span><span id="dash-goal-pct">0%</span></div>
+    <div class="progress-track" style="height:10px"><div class="progress-fill" id="dash-goal-bar" style="width:0%"></div></div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="section-title">Position collar — per account</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:8px">
+        <div style="text-align:center;padding:10px;background:var(--success-bg);border-radius:var(--radius-md)"><div style="font-family:var(--font-mono);font-size:10px;color:var(--success);text-transform:uppercase">Max profit</div><div style="font-family:var(--font-mono);font-size:18px;font-weight:500;color:var(--success);margin-top:4px" id="collar-max">$1,900</div></div>
+        <div style="text-align:center;padding:10px;background:var(--danger-bg);border-radius:var(--radius-md)"><div style="font-family:var(--font-mono);font-size:10px;color:var(--danger);text-transform:uppercase">Hard stop</div><div style="font-family:var(--font-mono);font-size:18px;font-weight:500;color:var(--danger);margin-top:4px">-$950</div></div>
+        <div style="text-align:center;padding:10px;background:var(--surface);border-radius:var(--radius-md)"><div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);text-transform:uppercase">Trail at</div><div style="font-family:var(--font-mono);font-size:18px;font-weight:500;color:var(--text);margin-top:4px">$475</div></div>
+      </div>
+      <p style="font-size:11px;color:var(--muted)">Stop = 50% of weekly target. Once daily target hit — close that account for the day.</p>
+    </div>
+    <div class="card">
+      <div class="section-title">Discipline streak</div>
+      <div class="streak-dots" id="streak-dots"></div>
+      <div style="font-size:12px;color:var(--muted);font-family:var(--font-mono)" id="streak-label">0 days in a row</div>
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn btn-ghost" style="font-size:12px" onclick="markStreak(true)">✓ Disciplined today</button>
+        <button class="btn btn-danger" style="font-size:12px;padding:6px 14px" onclick="markStreak(false)">✗ Broke rules</button>
+      </div>
+    </div>
+  </div>
+  <div id="dash-alerts"></div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="switchPanel('pre')">Start pre-trade ritual →</button>
+    <button class="btn btn-ghost" onclick="switchPanel('log')">Log a trade →</button>
+  </div>
+</div>
+
+<!-- PRE-TRADE -->
+<div class="panel" id="panel-pre">
+  <div class="page-title">Pre-trade ritual</div>
+  <div class="page-sub">Complete before opening any charts</div>
+  <div class="alert alert-warn">This ritual is not optional. Skipping it has cost you accounts before.</div>
+  <div class="card">
+    <div class="section-title">Morning state check</div>
+    <div class="form-row"><label>How did you sleep?</label>
+      <select id="pre-sleep"><option value="good">Well rested (7+ hrs)</option><option value="ok">Okay (5–7 hrs)</option><option value="bad">Poor (under 5 hrs) — consider skipping</option></select></div>
+    <div class="form-row"><label>Emotional state — be honest</label>
+      <div class="emotion-grid">
+        <button class="emotion-btn" onclick="selectEmotion(this,'calm')">Calm</button>
+        <button class="emotion-btn" onclick="selectEmotion(this,'focused')">Focused</button>
+        <button class="emotion-btn" onclick="selectEmotion(this,'confident')">Confident</button>
+        <button class="emotion-btn" onclick="selectEmotion(this,'neutral')">Neutral</button>
+        <button class="emotion-btn danger-emotion" onclick="selectEmotion(this,'anxious')">Anxious</button>
+        <button class="emotion-btn danger-emotion" onclick="selectEmotion(this,'revengeful')">Revenge mode</button>
+        <button class="emotion-btn danger-emotion" onclick="selectEmotion(this,'fomo')">FOMO active</button>
+        <button class="emotion-btn danger-emotion" onclick="selectEmotion(this,'desperate')">Desperate</button>
+      </div>
+      <div id="emotion-warning" class="alert alert-danger" style="display:none"></div>
+    </div>
+    <div class="form-row"><label>Financial pressure today?</label>
+      <select id="pre-pressure"><option value="none">None — trading my plan</option><option value="some">Some — manageable</option><option value="high">High — I feel I NEED money today ⚠</option></select></div>
+    <div class="form-row"><label>External stress?</label>
+      <select id="pre-stress"><option value="none">No — clear headspace</option><option value="minor">Minor background stress</option><option value="major">Major stress — impaired judgment risk</option></select></div>
+  </div>
+  <div class="card">
+    <div class="section-title">Market plan</div>
+    <div class="form-grid">
+      <div class="form-row"><label>Instrument(s)</label><input type="text" id="pre-instrument" placeholder="e.g. MES, NQ, CL"></div>
+      <div class="form-row"><label>Directional bias</label>
+        <select id="pre-bias"><option>Long bias</option><option>Short bias</option><option>Neutral — reactive only</option><option>No trades today</option></select></div>
+      <div class="form-row"><label>Key level to watch</label><input type="text" id="pre-level" placeholder="e.g. ES 5280 support"></div>
+      <div class="form-row"><label>Max trades per account</label><input type="number" id="pre-max-trades" value="3" min="1" max="10"></div>
+    </div>
+    <div class="form-row"><label>Today's specific setup — what are you waiting for?</label>
+      <textarea id="pre-setup" placeholder="e.g. Waiting for a pullback to the 8 EMA on NQ..."></textarea></div>
+  </div>
+  <div class="card" style="border-top:3px solid var(--gold)">
+    <div class="section-title">The Thailand reminder</div>
+    <div style="font-size:13px;line-height:1.8;color:var(--text)"><strong>Your only job today:</strong> Protect the accounts. One disciplined trade moves your family closer to Thailand. One revenge trade can blow an account and set you back two weeks.<br><br>
+    <span style="font-family:var(--font-mono);color:var(--gold)">Consistent beats perfect every time.</span></div>
+  </div>
+  <div id="pre-gate" class="alert alert-danger" style="display:none"></div>
+  <div id="pre-success" class="alert alert-success" style="display:none"></div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="completePre()">Ritual complete — open charts →</button>
+    <button class="btn btn-ghost" onclick="switchPanel('dashboard')">Back</button>
+  </div>
+  <div class="card" style="margin-top:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div class="section-title" style="margin-bottom:0">Ritual history</div>
+      <button class="btn btn-ghost" style="font-size:11px;padding:4px 12px" onclick="if(confirm('Clear ritual history?')){state.rituals=[];save();renderRituals();}">Clear</button>
+    </div>
+    <div id="ritual-list"><div class="empty-state">No rituals saved yet.</div></div>
+  </div>
+</div>
+
+<!-- TRADE LOG -->
+<div class="panel" id="panel-log">
+  <div class="page-title">Trade log</div>
+  <div class="page-sub" id="log-date-label"></div>
+  <div class="card">
+    <div class="section-title">Log new trade</div>
+    <div class="form-grid">
+      <div class="form-row"><label>Account</label><select id="log-account"></select></div>
+      <div class="form-row"><label>Instrument</label><input type="text" id="log-symbol" placeholder="e.g. MES, NQ, ES"></div>
+      <div class="form-row"><label>Direction</label><select id="log-dir"><option>Long</option><option>Short</option></select></div>
+      <div class="form-row"><label>P&amp;L ($)</label><input type="number" id="log-pnl" placeholder="e.g. 320 or -150"></div>
+      <div class="form-row"><label>Entry type</label>
+        <select id="log-setup">
+          <option>Planned — in my morning journal</option>
+          <option>Reactive — valid price action</option>
+          <option>Impulse — not pre-planned ⚠</option>
+          <option>FOMO — I chased the move ⚠⚠</option>
+        </select></div>
+      <div class="form-row"><label>Did you honor your stop?</label>
+        <select id="log-stop">
+          <option>Yes — exited at planned level</option>
+          <option>Moved stop once (valid reason)</option>
+          <option>No — held past stop ⚠</option>
+          <option>No stop set ⚠⚠</option>
+        </select></div>
+    </div>
+    <div class="form-row"><label>FOMO score before entry (0–10)</label>
+      <div class="range-row"><input type="range" min="0" max="10" step="1" value="0" id="log-fomo" oninput="document.getElementById('log-fomo-out').textContent=this.value"><span class="range-val" id="log-fomo-out">0</span></div></div>
+    <div class="form-row"><label>Post-trade reflection</label><textarea id="log-note" placeholder="What went right? Wrong? Did you feel FOMO? Would you take this trade again?"></textarea></div>
+    <div id="log-error" class="alert alert-danger" style="display:none"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="logTrade()">Save trade</button>
+      <button class="btn btn-ghost" onclick="clearTradeForm()">Clear</button>
+    </div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div class="section-title" style="margin-bottom:0">Today's trades <span id="today-pnl-badge"></span></div>
+    </div>
+    <div id="today-trades"></div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div class="section-title" style="margin-bottom:0">All trades</div>
+      <button class="btn btn-danger" style="font-size:11px;padding:5px 12px" onclick="if(confirm('Clear ALL trade history?')){state.trades=[];save();syncAccounts();renderTradeLog();renderDashboard();}">Clear all</button>
+    </div>
+    <div id="all-trades"></div>
+  </div>
+</div>
+
+<!-- FOMO CHECK -->
+<div class="panel" id="panel-fomo">
+  <div class="page-title">FOMO check</div>
+  <div class="page-sub">Run before every unplanned entry</div>
+  <div class="alert alert-danger">The feeling of missing a move is not a trading signal.</div>
+  <div class="card">
+    <div class="section-title">90-second pause</div>
+    <div class="timer-display" id="fomo-timer">1:30</div>
+    <p style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:14px;font-family:var(--font-mono)">FOMO fades in 90 seconds. Real setups don't.</p>
+    <div class="btn-row" style="justify-content:center">
+      <button class="btn btn-primary" onclick="startFomoTimer()">Start timer</button>
+      <button class="btn btn-ghost" onclick="resetFomoTimer()">Reset</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="section-title">Checklist</div>
+    <label class="fomo-check" for="fc1"><input type="checkbox" id="fc1"><span>Was this setup in my plan BEFORE the market opened?</span></label>
+    <label class="fomo-check" for="fc2"><input type="checkbox" id="fc2"><span>Am I entering because of clear price action — not just because it's moving?</span></label>
+    <label class="fomo-check" for="fc3"><input type="checkbox" id="fc3"><span>Do I have a defined stop AND target BEFORE entry?</span></label>
+    <label class="fomo-check" for="fc4"><input type="checkbox" id="fc4"><span>Have I already hit my daily target? (If YES — do NOT trade)</span></label>
+    <label class="fomo-check" for="fc5"><input type="checkbox" id="fc5"><span>Am I trying to make back a loss from earlier?</span></label>
+    <label class="fomo-check" for="fc6"><input type="checkbox" id="fc6"><span>Is this within my max trade count for today?</span></label>
+    <label class="fomo-check" for="fc7"><input type="checkbox" id="fc7"><span>Would I show this entry to a trading mentor without embarrassment?</span></label>
+    <label class="fomo-check" for="fc8"><input type="checkbox" id="fc8"><span>Am I thinking about the trade — or the money I just missed?</span></label>
+  </div>
+  <div id="fomo-result" class="alert" style="display:none"></div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="evalFomo()">Evaluate this trade</button>
+    <button class="btn btn-ghost" onclick="resetFomo()">Reset</button>
+  </div>
+</div>
+
+<!-- ACCOUNTS -->
+<div class="panel" id="panel-accounts">
+  <div class="page-title">Account manager</div>
+  <div class="page-sub">Add, remove, and track all prop firm accounts</div>
+  <div class="alert alert-success" style="font-size:12px">Earned totals sync automatically from your trade log each week.</div>
+  <div class="card" style="border-left:3px solid var(--gold)">
+    <div class="section-title">Add new account</div>
+    <div class="form-grid">
+      <div class="form-row"><label>Account name</label><input type="text" id="new-acct-name" placeholder="e.g. MFF #1, Apex #5"></div>
+      <div class="form-row"><label>Prop firm</label><input type="text" id="new-acct-firm" placeholder="e.g. MyFundedFutures" list="firm-list">
+        <datalist id="firm-list"><option value="Topstep"><option value="Apex"><option value="Lucid"><option value="MyFundedFutures"><option value="Bulenox"><option value="TradeDay"><option value="Funded Trading Plus"><option value="Take Profit Trader"></datalist></div>
+      <div class="form-row"><label>Weekly target ($)</label><input type="number" id="new-acct-target" value="1900" min="100"></div>
+    </div>
+    <div id="add-acct-error" style="font-size:12px;color:var(--danger);min-height:18px;margin-bottom:8px"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="addAccount()">Add account</button>
+      <button class="btn btn-ghost" onclick="clearAcctForm()">Clear</button>
+    </div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div class="section-title" style="margin-bottom:0">Active accounts</div>
+      <button class="btn btn-ghost" style="font-size:11px;padding:5px 12px" onclick="resetWeek()">New week — reset earned</button>
+    </div>
+    <div id="acct-active"><div class="empty-state">No accounts yet. Add one above.</div></div>
+  </div>
+  <div id="acct-paused-card" class="card" style="display:none">
+    <div class="section-title">Paused accounts</div>
+    <div id="acct-paused"></div>
+  </div>
+  <div class="card">
+    <div class="section-title">Log payout</div>
+    <div class="form-grid" style="margin-bottom:12px">
+      <div class="form-row"><label>Account</label><select id="payout-acct"></select></div>
+      <div class="form-row"><label>Amount ($)</label><input type="number" id="payout-amt" placeholder="1900"></div>
+    </div>
+    <div class="form-row"><label>Notes</label><input type="text" id="payout-note" placeholder="e.g. Week 3 — consistent execution"></div>
+    <button class="btn btn-primary" onclick="logPayout()">Log payout</button>
+    <div id="payout-history"></div>
+  </div>
+</div>
+
+<!-- RULES -->
+<div class="panel" id="panel-rules">
+  <div class="page-title">My rules</div>
+  <div class="page-sub">Non-negotiables — read before touching the keyboard</div>
+  <div class="alert alert-warn">These rules exist because you've already learned the hard lessons.</div>
+  <div class="rule-card"><span class="rule-num">R1</span><span class="rule-text"><strong>One target, one exit.</strong> When an account hits its weekly target — withdraw it, close that platform. No extra trades.</span></div>
+  <div class="rule-card"><span class="rule-num">R2</span><span class="rule-text"><strong>Hard daily stop-out = 50% of weekly target.</strong> Hit it → computers off, no re-entries, no exceptions.</span></div>
+  <div class="rule-card"><span class="rule-num">R3</span><span class="rule-text"><strong>No impulse entries.</strong> If it wasn't in your morning plan — run the FOMO checklist first. Every time.</span></div>
+  <div class="rule-card"><span class="rule-num">R4</span><span class="rule-text"><strong>3 consecutive losers = session over.</strong> Walk away. Thailand is still there tomorrow.</span></div>
+  <div class="rule-card"><span class="rule-num">R5</span><span class="rule-text"><strong>Never move a stop in the wrong direction.</strong> Once set — it does not move wider. Ever.</span></div>
+  <div class="rule-card"><span class="rule-num">R6</span><span class="rule-text"><strong>Each account is a separate business.</strong> A bad day on one account does NOT give permission to trade harder on another.</span></div>
+  <div class="rule-card"><span class="rule-num">R7</span><span class="rule-text"><strong>Survival mode = no-trade day.</strong> If you feel you NEED money today — close the laptop. Come back tomorrow.</span></div>
+  <div class="rule-card"><span class="rule-num">R8</span><span class="rule-text"><strong>The math already works.</strong> You only need consistent execution. Don't blow it chasing more.</span></div>
+  <hr>
+  <div class="section-title">Add your own rule</div>
+  <div class="form-row"><input type="text" id="custom-rule-input" placeholder="e.g. Never trade the first 15 minutes of RTH"></div>
+  <button class="btn btn-primary" onclick="addRule()">Add rule</button>
+  <div id="custom-rules" style="margin-top:14px"></div>
+</div>
+
+<!-- GOAL -->
+<div class="panel" id="panel-goal">
+  <div class="page-title">Thailand goal</div>
+  <div class="page-sub">$50,000 — the mission</div>
+  <div class="card" style="border-top:3px solid var(--gold)">
+    <div class="grid3">
+      <div class="metric-card"><div class="m-label">Weekly gross</div><div class="m-value" id="goal-weekly-display">—</div><div class="m-sub">active accounts</div></div>
+      <div class="metric-card"><div class="m-label">Save needed/wk</div><div class="m-value" id="goal-save-needed">—</div><div class="m-sub">to hit goal in 16 wks</div></div>
+      <div class="metric-card"><div class="m-label">Weeks left</div><div class="m-value" id="goal-weeks-left2">16</div><div class="m-sub">of 16</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="section-title">Update progress</div>
+    <div class="form-grid">
+      <div class="form-row"><label>Total saved ($)</label><input type="number" id="goal-saved-input" placeholder="0" oninput="liveGoal(this.value)"></div>
+      <div class="form-row"><label>Weeks completed</label><input type="number" id="goal-weeks-input" placeholder="0" min="0" max="16"></div>
+      <div class="form-row"><label>Goal amount ($)</label><input type="number" id="goal-target-input" value="50000" min="1000"></div>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-label"><span>Progress</span><span id="goal-pct-label">0%</span></div>
+      <div class="progress-track" style="height:10px"><div class="progress-fill" id="goal-bar" style="width:0%"></div></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveGoal()">Save progress</button>
+  </div>
+  <div class="card"><div class="section-title">Week-by-week plan</div><div id="week-schedule"></div></div>
+</div>
+
+<!-- MINDSET JOURNAL -->
+<div class="panel" id="panel-mindset">
+  <div class="page-title">Mindset journal</div>
+  <div class="page-sub">Break through mental barriers. Document the journey.</div>
+  <div class="alert alert-warn">Write about fear, self-sabotage, patterns, breakthroughs. The work you do here shows up in your P&amp;L.</div>
+  <div class="card" style="border-left:3px solid var(--gold)">
+    <div class="section-title">New entry</div>
+    <div class="form-grid" style="margin-bottom:12px">
+      <div class="form-row"><label>Entry type</label>
+        <select id="j-type" onchange="updatePrompts()">
+          <option value="reflection">Daily reflection</option>
+          <option value="breakthrough">Breakthrough moment</option>
+          <option value="setback">Setback — what went wrong</option>
+          <option value="pattern">Pattern I noticed</option>
+          <option value="gratitude">Gratitude / wins</option>
+          <option value="letter">Letter to future self</option>
+          <option value="free">Free write</option>
+        </select></div>
+      <div class="form-row"><label>Mood right now (1–10)</label>
+        <div class="range-row"><input type="range" min="1" max="10" step="1" value="5" id="j-mood" oninput="document.getElementById('j-mood-out').textContent=this.value;updateMoodLabel(this.value)"><span class="range-val" id="j-mood-out">5</span></div>
+        <div id="j-mood-label" style="font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-top:4px">Neutral</div>
+      </div>
+    </div>
+    <div class="form-row"><label>Title <span style="color:var(--muted);font-size:11px">(optional)</span></label><input type="text" id="j-title" placeholder="e.g. Why I keep revenge trading..."></div>
+    <div id="j-prompts" style="margin-bottom:12px"></div>
+    <div class="form-row"><label>Write it out</label><textarea id="j-body" placeholder="Start writing..." style="min-height:180px;line-height:1.8"></textarea></div>
+    <div class="form-row"><label>Tags <span style="color:var(--muted);font-size:11px">(comma separated)</span></label><input type="text" id="j-tags" placeholder="e.g. fomo, revenge, discipline, family"></div>
+    <div id="j-error" style="font-size:12px;color:var(--danger);min-height:16px;margin-bottom:8px"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveJournal()">Save entry</button>
+      <button class="btn btn-ghost" onclick="clearJournal()">Clear</button>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <input type="text" id="j-search" placeholder="Search entries..." style="flex:1;min-width:160px" oninput="renderJournal()">
+      <select id="j-filter-type" style="width:auto" onchange="renderJournal()"><option value="">All types</option><option value="reflection">Reflection</option><option value="breakthrough">Breakthrough</option><option value="setback">Setback</option><option value="pattern">Pattern</option><option value="gratitude">Gratitude</option><option value="letter">Letter</option><option value="free">Free write</option></select>
+      <select id="j-filter-mood" style="width:auto" onchange="renderJournal()"><option value="">All moods</option><option value="high">High (8–10)</option><option value="mid">Neutral (4–7)</option><option value="low">Low (1–3)</option></select>
+    </div>
+  </div>
+  <div id="journal-list"></div>
+</div>
+
+</main>
+</div>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
+var DEFAULT_ACCOUNTS = [
+  {id:'ts1',name:'Topstep #1',firm:'Topstep',target:1900,earned:0,active:true},
+  {id:'ts2',name:'Topstep #2',firm:'Topstep',target:1900,earned:0,active:true},
+  {id:'ap1',name:'Apex #1',firm:'Apex',target:1900,earned:0,active:true},
+  {id:'ap2',name:'Apex #2',firm:'Apex',target:1900,earned:0,active:true},
+  {id:'ap3',name:'Apex #3',firm:'Apex',target:1900,earned:0,active:true},
+  {id:'ap4',name:'Apex #4',firm:'Apex',target:1900,earned:0,active:true},
+  {id:'lc1',name:'Lucid #1',firm:'Lucid',target:1900,earned:0,active:true},
+  {id:'lc2',name:'Lucid #2',firm:'Lucid',target:1900,earned:0,active:true}
+];
+
+var state = {
+  trades:[],payouts:[],streak:[],rules:[],rituals:[],journal:[],
+  weekResetDate:'',
+  goal:{saved:0,weeksDone:0,target:50000},
+  accounts: JSON.parse(JSON.stringify(DEFAULT_ACCOUNTS))
+};
+
+function load() {
+  try {
+    var raw = localStorage.getItem('df-journal-v3');
+    if (raw) {
+      var parsed = JSON.parse(raw);
+      state = Object.assign({}, state, parsed);
+      if (!Array.isArray(state.accounts) || state.accounts.length === 0) state.accounts = JSON.parse(JSON.stringify(DEFAULT_ACCOUNTS));
+      if (!state.goal) state.goal = {saved:0,weeksDone:0,target:50000};
+      if (!Array.isArray(state.trades)) state.trades = [];
+      if (!Array.isArray(state.rituals)) state.rituals = [];
+      if (!Array.isArray(state.journal)) state.journal = [];
+      if (!Array.isArray(state.rules)) state.rules = [];
+      if (!Array.isArray(state.payouts)) state.payouts = [];
+      if (!Array.isArray(state.streak)) state.streak = [];
+    }
+  } catch(e) { console.warn('Load error', e); }
+}
+
+function save() {
+  try { localStorage.setItem('df-journal-v3', JSON.stringify(state)); } catch(e) {}
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+function todayLabel() { return new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); }
+function timeStr() { return new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}); }
+function fmtMoney(n) { return (n>=0?'+$':'-$')+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function fmtAbs(n) { return '$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function genId() { return 'id_'+Date.now()+'_'+Math.floor(Math.random()*9999); }
+
+function activeAccounts() { return state.accounts.filter(function(a){return a.active!==false;}); }
+function weeklyTarget() { return activeAccounts().reduce(function(s,a){return s+(a.target||1900);},0); }
+
+// ─── SYNC TRADES → ACCOUNTS ──────────────────────────────────────────────────
+function weekStart() {
+  var autoMonday = (function(){
+    var d = new Date(); var day = d.getDay();
+    var diff = day===0?-6:1-day; d.setDate(d.getDate()+diff);
+    return d.toISOString().split('T')[0];
+  })();
+  var manual = state.weekResetDate || '';
+  return manual > autoMonday ? manual : autoMonday;
+}
+
+function syncAccounts() {
+  var ws = weekStart();
+  state.accounts.forEach(function(acct) {
+    var total = 0;
+    state.trades.forEach(function(t) {
+      if (t.account === acct.name && t.date >= ws) total += (t.pnl||0);
+    });
+    acct.earned = Math.round(total*100)/100;
+  });
+  save();
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+function switchPanel(name) {
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+  var panel = document.getElementById('panel-'+name);
+  if (panel) panel.classList.add('active');
+  var order = ['dashboard','pre','log','fomo','accounts','rules','goal','mindset'];
+  var idx = order.indexOf(name);
+  var navItems = document.querySelectorAll('.nav-item');
+  if (navItems[idx]) navItems[idx].classList.add('active');
+  if (name==='dashboard') renderDashboard();
+  if (name==='pre') { renderRituals(); updatePromptsPre(); }
+  if (name==='log') { populateDropdowns(); renderTradeLog(); }
+  if (name==='accounts') { populateDropdowns(); renderAccounts(); }
+  if (name==='goal') renderGoal();
+  if (name==='rules') renderRules();
+  if (name==='mindset') { renderJournal(); updatePrompts(); }
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────────────────────────
+function renderDashboard() {
+  document.getElementById('dash-date').textContent = todayLabel();
+  document.getElementById('log-date-label').textContent = todayLabel();
+  var saved = state.goal.saved||0;
+  var goalAmt = state.goal.target||50000;
+  var weeksDone = state.goal.weeksDone||0;
+  var pct = Math.min(100,(saved/goalAmt)*100);
+  var wt = weeklyTarget();
+  var active = activeAccounts();
+  document.getElementById('dash-weekly-target').textContent = fmtAbs(wt);
+  document.getElementById('dash-weekly-sub').textContent = active.length+' accts';
+  document.getElementById('dash-saved').textContent = fmtAbs(saved);
+  document.getElementById('dash-saved-pct').textContent = pct.toFixed(1)+'% of goal';
+  document.getElementById('dash-weeks-left').textContent = Math.max(0,16-weeksDone);
+  document.getElementById('dash-goal-pct').textContent = pct.toFixed(1)+'%';
+  document.getElementById('dash-goal-bar').style.width = pct+'%';
+  document.getElementById('sidebar-saved').textContent = fmtAbs(saved);
+  document.getElementById('sidebar-pct').textContent = pct.toFixed(1)+'% of '+fmtAbs(goalAmt);
+  document.getElementById('sidebar-bar').style.width = pct+'%';
+  var todayTrades = state.trades.filter(function(t){return t.date===todayStr();});
+  var todayPnl = todayTrades.reduce(function(s,t){return s+t.pnl;},0);
+  document.getElementById('dash-today-pnl').textContent = fmtMoney(todayPnl);
+  document.getElementById('dash-trade-count').textContent = todayTrades.length+' trade'+(todayTrades.length!==1?'s':'');
+  renderStreak();
+  renderDashAlerts(todayTrades, todayPnl);
+}
+
+function renderStreak() {
+  var dots = document.getElementById('streak-dots');
+  dots.innerHTML = '';
+  for (var i=0;i<14;i++) {
+    var d = document.createElement('div');
+    d.className = 'streak-dot '+(state.streak[i]===true?'good':state.streak[i]===false?'bad':'empty');
+    d.textContent = i+1;
+    dots.appendChild(d);
+  }
+  var consec = 0;
+  for (var j=state.streak.length-1;j>=0;j--) { if(state.streak[j]===true)consec++; else break; }
+  document.getElementById('streak-label').textContent = consec+' disciplined day'+(consec!==1?'s':'')+' in a row';
+}
+
+function markStreak(good) {
+  if (state.streak.length>=14) state.streak.shift();
+  state.streak.push(good); save(); renderStreak();
+}
+
+function renderDashAlerts(todayTrades, todayPnl) {
+  var alerts = [];
+  if (todayPnl<=-950) alerts.push({type:'danger',msg:'DAILY STOP-OUT REACHED: Down $950+. Session over. Close all platforms now.'});
+  var consec=0; for(var i=todayTrades.length-1;i>=0;i--){if(todayTrades[i].pnl<0)consec++;else break;}
+  if (consec>=3) alerts.push({type:'danger',msg:'3 consecutive losses. Session over per Rule R4.'});
+  var fomos = todayTrades.filter(function(t){return t.setup&&t.setup.includes('FOMO');});
+  if (fomos.length) alerts.push({type:'warn',msg:fomos.length+' FOMO trade(s) today. Review your ritual before next session.'});
+  var stops = todayTrades.filter(function(t){return t.stop&&(t.stop.includes('past stop')||t.stop.includes('No stop'));});
+  if (stops.length) alerts.push({type:'warn',msg:'Stop not honored on '+stops.length+' trade(s). Rule R5 was broken.'});
+  document.getElementById('dash-alerts').innerHTML = alerts.map(function(a){return '<div class="alert alert-'+a.type+'">'+a.msg+'</div>';}).join('');
+}
+
+// ─── PRE-TRADE ────────────────────────────────────────────────────────────────
+var selectedEmotion = '';
+
+function selectEmotion(el, val) {
+  document.querySelectorAll('.emotion-btn').forEach(function(b){b.classList.remove('selected');});
+  el.classList.add('selected'); selectedEmotion = val;
+  var msgs = {anxious:'Anxious state detected. High risk of overtrading. Consider skipping today.',revengeful:'Revenge mode. Do NOT open charts today.',fomo:'FOMO already active. This is a no-trade day.',desperate:'Feeling desperate. You will break rules. Close the laptop.'};
+  var w = document.getElementById('emotion-warning');
+  if (msgs[val]) { w.style.display='block'; w.textContent=msgs[val]; } else w.style.display='none';
+}
+
+function updatePromptsPre() {}
+
+function completePre() {
+  var gate = document.getElementById('pre-gate');
+  var suc = document.getElementById('pre-success');
+  gate.style.display='none'; suc.style.display='none';
+  var dangerous = ['anxious','revengeful','fomo','desperate'];
+  var pressure = document.getElementById('pre-pressure').value;
+  var stress = document.getElementById('pre-stress').value;
+  var blockMsg = '';
+  if (dangerous.indexOf(selectedEmotion)>=0) blockMsg='Ritual blocked: emotional state is high-risk. Do not trade today.';
+  else if (pressure==='high') blockMsg='Survival mode detected. Close your charts.';
+  else if (stress==='major') blockMsg='Major stress detected. Trading with impaired judgment today is high risk.';
+  if (blockMsg) { gate.style.display='block'; gate.textContent=blockMsg; saveRitual('blocked',blockMsg); return; }
+  suc.style.display='block'; suc.textContent='Ritual complete. You are cleared to trade. Execute your plan.';
+  saveRitual('cleared','');
+  setTimeout(function(){switchPanel('log');},1200);
+}
+
+function saveRitual(status, blockReason) {
+  state.rituals.unshift({
+    id:Date.now(), date:todayStr(), time:timeStr(), status:status, blockReason:blockReason,
+    emotion:selectedEmotion||'not set',
+    sleep:document.getElementById('pre-sleep').value,
+    pressure:document.getElementById('pre-pressure').value,
+    stress:document.getElementById('pre-stress').value,
+    instrument:document.getElementById('pre-instrument').value||'—',
+    bias:document.getElementById('pre-bias').value,
+    level:document.getElementById('pre-level').value||'—',
+    maxTrades:document.getElementById('pre-max-trades').value,
+    setup:document.getElementById('pre-setup').value||'—'
+  });
+  save(); renderRituals();
+}
+
+function renderRituals() {
+  var el = document.getElementById('ritual-list');
+  if (!el) return;
+  if (!state.rituals.length) { el.innerHTML='<div class="empty-state">No rituals saved yet.</div>'; return; }
+  el.innerHTML = state.rituals.map(function(r) {
+    var cleared = r.status==='cleared';
+    var border = cleared?'var(--success)':'var(--danger)';
+    var badgeStyle = 'display:inline-block;font-family:var(--font-mono);font-size:11px;font-weight:500;padding:3px 10px;border-radius:10px;background:'+(cleared?'var(--success-bg)':'var(--danger-bg)')+';color:'+(cleared?'var(--success)':'var(--danger)')+';';
+    return '<div style="border:0.5px solid var(--border);border-left:3px solid '+border+';border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px;">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:10px;">'
+        +'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+          +'<span style="'+badgeStyle+'">'+(cleared?'Cleared to trade':'Blocked')+'</span>'
+          +'<span style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">'+r.date+' · '+r.time+'</span>'
+        +'</div>'
+        +'<button class="delete-btn" onclick="deleteRitual('+r.id+')">×</button>'
+      +'</div>'
+      +(r.blockReason?'<div class="alert alert-danger" style="font-size:12px;margin-bottom:10px;">'+r.blockReason+'</div>':'')
+      +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;font-size:12px;">'
+        +cell('Emotion',r.emotion)+cell('Sleep',r.sleep.split('(')[0])+cell('Pressure',r.pressure)
+        +cell('Instrument',r.instrument)+cell('Bias',r.bias.split('—')[0])+cell('Key level',r.level)
+        +cell('Max trades',r.maxTrades)
+      +'</div>'
+      +(r.setup&&r.setup!=='—'?'<div style="margin-top:8px;background:var(--surface);border-radius:var(--radius-md);padding:8px 12px;"><div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;">Setup notes</div><div style="font-size:12px;color:var(--text);line-height:1.6;">'+r.setup+'</div></div>':'')
+    +'</div>';
+  }).join('');
+}
+
+function cell(label, val) {
+  return '<div style="background:var(--surface);border-radius:var(--radius-md);padding:8px 12px;">'
+    +'<div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;">'+label+'</div>'
+    +'<div style="font-size:12px;color:var(--text);">'+val+'</div></div>';
+}
+
+function deleteRitual(id) {
+  state.rituals = state.rituals.filter(function(r){return r.id!==id;}); save(); renderRituals();
+}
+
+// ─── TRADE LOG ────────────────────────────────────────────────────────────────
+function populateDropdowns() {
+  var active = activeAccounts();
+  var opts = active.length ? active.map(function(a){return '<option value="'+a.name+'">'+a.name+'</option>';}).join('') : '<option>No accounts — add one first</option>';
+  ['log-account','payout-acct'].forEach(function(id){
+    var el = document.getElementById(id); if(el) el.innerHTML = opts;
+  });
+}
+
+function logTrade() {
+  var pnlVal = document.getElementById('log-pnl').value;
+  var pnl = parseFloat(pnlVal);
+  var errEl = document.getElementById('log-error');
+  if (pnlVal===''||isNaN(pnl)) { errEl.style.display='block'; errEl.textContent='Please enter a P&L amount.'; return; }
+  errEl.style.display='none';
+  var trade = {
+    id: Date.now(),
+    date: todayStr(),
+    time: timeStr(),
+    account: document.getElementById('log-account').value,
+    symbol: document.getElementById('log-symbol').value||'—',
+    dir: document.getElementById('log-dir').value,
+    pnl: pnl,
+    setup: document.getElementById('log-setup').value,
+    stop: document.getElementById('log-stop').value,
+    fomo: parseInt(document.getElementById('log-fomo').value)||0,
+    note: document.getElementById('log-note').value
+  };
+  state.trades.push(trade);
+  syncAccounts();
+  renderTradeLog();
+  renderDashboard();
+  clearTradeForm();
+}
+
+function clearTradeForm() {
+  ['log-symbol','log-pnl','log-note'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  var f=document.getElementById('log-fomo'); if(f){f.value=0; document.getElementById('log-fomo-out').textContent='0';}
+  var e=document.getElementById('log-error'); if(e)e.style.display='none';
+}
+
+function deleteTrade(id) {
+  if (!confirm('Delete this trade?')) return;
+  state.trades = state.trades.filter(function(t){return t.id!==id;});
+  syncAccounts(); renderTradeLog(); renderDashboard();
+}
+
+function renderTradeLog() {
+  var todayTrades = state.trades.filter(function(t){return t.date===todayStr();});
+  var todayPnl = todayTrades.reduce(function(s,t){return s+t.pnl;},0);
+  var badge = document.getElementById('today-pnl-badge');
+  if (badge) badge.innerHTML = todayTrades.length ? '<span class="tag '+(todayPnl>=0?'tag-success':'tag-danger')+'">'+fmtMoney(todayPnl)+'</span>' : '';
+  document.getElementById('today-trades').innerHTML = buildTradeCards(todayTrades, true);
+  document.getElementById('all-trades').innerHTML = buildTradeCards(state.trades.slice().reverse(), false);
+}
+
+function buildTradeCards(trades, isToday) {
+  if (!trades.length) return '<div class="empty-state">No trades logged yet.</div>';
+  return trades.map(function(t) {
+    var pos = t.pnl>=0;
+    var pnlColor = pos?'var(--success)':'var(--danger)';
+    var border = pos?'3px solid var(--success)':'3px solid var(--danger)';
+    var stopOk = t.stop&&t.stop.startsWith('Yes');
+    var stopShort = stopOk?'Honored':t.stop&&t.stop.includes('Moved')?'Moved once':t.stop&&t.stop.includes('past')?'Held past stop':'No stop set';
+    var stopColor = stopOk?'var(--success)':'var(--danger)';
+    var stopBg = stopOk?'var(--success-bg)':'var(--danger-bg)';
+    var fomo = t.fomo||0;
+    var fomoColor = fomo>=7?'var(--danger)':fomo>=4?'var(--gold)':'var(--success)';
+    var fomoBg = fomo>=7?'var(--danger-bg)':fomo>=4?'var(--warn-bg)':'var(--success-bg)';
+    var isFomo = t.setup&&t.setup.includes('FOMO');
+    var isImp = t.setup&&t.setup.includes('Impulse');
+    var setupShort = isFomo?'FOMO':isImp?'Impulse':t.setup&&t.setup.includes('Reactive')?'Reactive':'Planned';
+    var setupColor = isFomo?'var(--danger)':isImp?'var(--gold)':'var(--success)';
+    var setupBg = isFomo?'var(--danger-bg)':isImp?'var(--warn-bg)':'var(--success-bg)';
+    return '<div style="background:var(--card-bg);border:0.5px solid var(--border);border-left:'+border+';border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px;">'
+      // top row
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:12px;">'
+        +'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+          +(!isToday?'<span style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">'+t.date+'</span>':'')
+          +'<span style="font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--text);">'+t.account+'</span>'
+          +'<span style="font-family:var(--font-mono);font-size:13px;color:var(--muted);">'+t.symbol+'</span>'
+          +'<span style="font-family:var(--font-mono);font-size:11px;background:var(--surface);padding:2px 8px;border-radius:10px;color:var(--muted);">'+t.dir+'</span>'
+          +(t.time?'<span style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">'+t.time+'</span>':'')
+        +'</div>'
+        +'<div style="display:flex;align-items:center;gap:10px;">'
+          +'<span style="font-family:var(--font-mono);font-size:18px;font-weight:500;color:'+pnlColor+';">'+fmtMoney(t.pnl)+'</span>'
+          +'<button class="delete-btn" onclick="deleteTrade('+t.id+')">×</button>'
+        +'</div>'
+      +'</div>'
+      // badges
+      +'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">'
+        +'<div style="background:'+setupBg+';color:'+setupColor+';font-family:var(--font-mono);font-size:11px;font-weight:500;padding:4px 10px;border-radius:10px;">'+setupShort+'</div>'
+        +'<div style="background:'+stopBg+';color:'+stopColor+';font-family:var(--font-mono);font-size:11px;font-weight:500;padding:4px 10px;border-radius:10px;">Stop: '+stopShort+'</div>'
+        +'<div style="background:'+fomoBg+';color:'+fomoColor+';font-family:var(--font-mono);font-size:11px;font-weight:500;padding:4px 10px;border-radius:10px;">FOMO '+fomo+'/10</div>'
+      +'</div>'
+      // detail grid
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">'
+        +cell('Entry type',t.setup||'—')
+        +cell('Stop discipline',t.stop||'—')
+      +'</div>'
+      // notes
+      +(t.note?'<div style="background:var(--surface);border-radius:var(--radius-md);padding:10px 12px;">'
+        +'<div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;">Post-trade reflection</div>'
+        +'<div style="font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap;">'+t.note+'</div>'
+        +'</div>':'')
+    +'</div>';
+  }).join('');
+}
+
+// ─── FOMO CHECK ───────────────────────────────────────────────────────────────
+var fomoInterval=null, fomoSecs=90;
+function startFomoTimer() {
+  if (fomoInterval) return;
+  fomoInterval = setInterval(function(){
+    fomoSecs--;
+    var m=Math.floor(fomoSecs/60), s=fomoSecs%60;
+    document.getElementById('fomo-timer').textContent = m+':'+(s<10?'0':'')+s;
+    if (fomoSecs<=0){ clearInterval(fomoInterval); fomoInterval=null; document.getElementById('fomo-timer').textContent='Done — evaluate now'; }
+  },1000);
+}
+function resetFomoTimer(){ clearInterval(fomoInterval); fomoInterval=null; fomoSecs=90; document.getElementById('fomo-timer').textContent='1:30'; }
+function evalFomo(){
+  var ids=['fc1','fc2','fc3','fc4','fc5','fc6','fc7','fc8'];
+  var checked=ids.filter(function(id){return document.getElementById(id).checked;}).length;
+  var r=document.getElementById('fomo-result'); r.style.display='block';
+  if(checked>=7){r.className='alert alert-success';r.textContent=checked+'/8 passed. If stop and target are set — you may enter. Trade the plan.';}
+  else if(checked>=5){r.className='alert alert-warn';r.textContent=checked+'/8 passed. Reduce size by 50% or skip.';}
+  else{r.className='alert alert-danger';r.textContent='Only '+checked+'/8 passed. This is FOMO. Do not enter. Your family is waiting.';}
+}
+function resetFomo(){
+  ['fc1','fc2','fc3','fc4','fc5','fc6','fc7','fc8'].forEach(function(id){document.getElementById(id).checked=false;});
+  document.getElementById('fomo-result').style.display='none'; resetFomoTimer();
+}
+
+// ─── ACCOUNTS ─────────────────────────────────────────────────────────────────
+var FIRM_BADGES = {Topstep:'badge-topstep',Apex:'badge-apex',Lucid:'badge-lucid',MyFundedFutures:'badge-mff',Bulenox:'badge-bulenox',TradeDay:'badge-tradeday','Funded Trading Plus':'badge-ftp','Take Profit Trader':'badge-tpt'};
+function badgeClass(firm){ return FIRM_BADGES[firm]||'badge-other'; }
+
+function clearAcctForm(){ ['new-acct-name','new-acct-firm'].forEach(function(id){document.getElementById(id).value='';}); document.getElementById('new-acct-target').value='1900'; document.getElementById('add-acct-error').textContent=''; }
+
+function addAccount() {
+  var name=document.getElementById('new-acct-name').value.trim();
+  var firm=document.getElementById('new-acct-firm').value.trim()||'Other';
+  var target=parseFloat(document.getElementById('new-acct-target').value)||1900;
+  var err=document.getElementById('add-acct-error');
+  if(!name){err.textContent='Account name is required.';return;} err.textContent='';
+  state.accounts.push({id:genId(),name:name,firm:firm,target:target,earned:0,active:true});
+  save(); clearAcctForm(); syncAccounts(); renderAccounts(); renderDashboard(); populateDropdowns();
+}
+
+function removeAccount(id) {
+  var a=state.accounts.find(function(x){return x.id===id;});
+  if(!a||!confirm('Remove "'+a.name+'"? Trade history will be kept.')) return;
+  state.accounts=state.accounts.filter(function(x){return x.id!==id;});
+  save(); renderAccounts(); renderDashboard(); populateDropdowns();
+}
+
+function toggleAccount(id) {
+  var a=state.accounts.find(function(x){return x.id===id;});
+  if(a){a.active=!a.active;save();syncAccounts();renderAccounts();renderDashboard();populateDropdowns();}
+}
+
+function updateTarget(id, val) {
+  var a=state.accounts.find(function(x){return x.id===id;});
+  if(a){a.target=parseFloat(val)||1900;save();renderDashboard();}
+}
+
+function resetWeek() {
+  if(!confirm('Reset weekly earned totals to $0?\n\nTrade history is kept — only the earned totals reset.\nDo this every Monday.')) return;
+  state.weekResetDate=todayStr();
+  state.accounts.forEach(function(a){a.earned=0;}); save(); renderAccounts(); renderDashboard();
+}
+
+function buildAcctRow(a) {
+  var earned=a.earned||0, target=a.target||1900;
+  var pct=Math.min(100,(earned/target)*100);
+  var fillCls=pct>=100?'success':'';
+  return '<div class="account-row" style="'+(a.active?'':'opacity:.55;')+'">'
+    +'<div style="min-width:110px;font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--text);">'+a.name+'</div>'
+    +'<span class="acct-badge '+badgeClass(a.firm)+'">'+a.firm+'</span>'
+    +'<div style="flex:1;min-width:80px;"><div class="progress-track" style="height:6px;"><div class="progress-fill '+fillCls+'" style="width:'+pct.toFixed(1)+'%"></div></div></div>'
+    +'<div style="display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:12px;color:var(--muted);white-space:nowrap;">'
+      +'<span style="color:'+(pct>=100?'var(--success)':'var(--text)')+';font-weight:'+(pct>=100?'500':'400')+';">'+fmtAbs(earned)+'</span>'
+      +'<span>/</span>'
+      +'$<input type="number" value="'+target+'" min="100" style="width:68px;padding:4px 6px;font-size:12px;font-family:var(--font-mono);" title="Weekly target" onchange="updateTarget(\''+a.id+'\',this.value)">'
+    +'</div>'
+    +'<div style="display:flex;gap:6px;flex-shrink:0;">'
+      +'<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;" onclick="toggleAccount(\''+a.id+'\')">'+(a.active?'Pause':'Activate')+'</button>'
+      +'<button class="delete-btn" onclick="removeAccount(\''+a.id+'\')" title="Remove">×</button>'
+    +'</div>'
+  +'</div>';
+}
+
+function renderAccounts() {
+  var active=state.accounts.filter(function(a){return a.active!==false;});
+  var paused=state.accounts.filter(function(a){return a.active===false;});
+  var sumTarget=active.reduce(function(s,a){return s+(a.target||1900);},0);
+  var sumEarned=active.reduce(function(s,a){return s+(a.earned||0);},0);
+  var el=document.getElementById('acct-active');
+  if(!active.length){el.innerHTML='<div class="empty-state">No active accounts. Add one above.</div>';}
+  else{
+    el.innerHTML='<div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--muted);padding-bottom:8px;border-bottom:0.5px solid var(--border);margin-bottom:6px;flex-wrap:wrap;gap:4px;">'
+      +'<span>'+active.length+' account'+(active.length!==1?'s':'')+' — target <strong style="color:var(--text);">'+fmtAbs(sumTarget)+'/wk</strong></span>'
+      +'<span>earned this week: <strong style="color:var(--success);">'+fmtAbs(sumEarned)+'</strong></span>'
+    +'</div>'+active.map(buildAcctRow).join('');
+  }
+  var pc=document.getElementById('acct-paused-card');
+  var pe=document.getElementById('acct-paused');
+  if(paused.length){pc.style.display='block';pe.innerHTML=paused.map(buildAcctRow).join('');}
+  else{pc.style.display='none';}
+  renderPayouts();
+}
+
+function logPayout() {
+  var acct=document.getElementById('payout-acct').value;
+  var amt=parseFloat(document.getElementById('payout-amt').value);
+  if(!amt||!acct) return;
+  state.payouts.push({id:Date.now(),date:todayStr(),account:acct,amount:amt,note:document.getElementById('payout-note').value});
+  document.getElementById('payout-amt').value=''; document.getElementById('payout-note').value='';
+  save(); renderPayouts();
+}
+
+function deletePayout(id){ state.payouts=state.payouts.filter(function(p){return p.id!==id;}); save(); renderPayouts(); }
+
+function renderPayouts() {
+  var el=document.getElementById('payout-history'); if(!el) return;
+  if(!state.payouts.length){el.innerHTML='';return;}
+  var total=state.payouts.reduce(function(s,p){return s+p.amount;},0);
+  el.innerHTML='<div style="margin-top:16px"><div class="section-title">Payout history — total: <span style="color:var(--success);">'+fmtAbs(total)+'</span></div>'
+    +state.payouts.map(function(p){
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--border);font-size:13px;flex-wrap:wrap;gap:6px;">'
+        +'<span style="font-family:var(--font-mono);color:var(--muted);font-size:12px;">'+p.date+'</span>'
+        +'<span style="font-family:var(--font-mono);">'+p.account+'</span>'
+        +'<span style="font-family:var(--font-mono);color:var(--success);font-weight:500;">'+fmtAbs(p.amount)+'</span>'
+        +'<span style="color:var(--muted);font-size:12px;">'+p.note+'</span>'
+        +'<button class="delete-btn" onclick="deletePayout('+p.id+')">×</button>'
+      +'</div>';
+    }).join('')+'</div>';
+}
+
+// ─── RULES ────────────────────────────────────────────────────────────────────
+function addRule() {
+  var val=document.getElementById('custom-rule-input').value.trim();
+  if(!val) return;
+  state.rules.push({id:Date.now(),text:val});
+  document.getElementById('custom-rule-input').value='';
+  save(); renderRules();
+}
+
+function deleteRule(id){ state.rules=state.rules.filter(function(r){return r.id!==id;}); save(); renderRules(); }
+
+function renderRules() {
+  var el=document.getElementById('custom-rules'); if(!el) return;
+  el.innerHTML=state.rules.map(function(r,i){
+    return '<div class="rule-card" style="margin-top:8px;">'
+      +'<span class="rule-num">R'+(9+i)+'</span>'
+      +'<span class="rule-text">'+r.text+'</span>'
+      +'<button class="delete-btn" onclick="deleteRule('+r.id+')">×</button>'
+    +'</div>';
+  }).join('');
+}
+
+// ─── GOAL ─────────────────────────────────────────────────────────────────────
+function liveGoal(val) {
+  var saved=parseFloat(val)||0, goalAmt=state.goal.target||50000;
+  var pct=Math.min(100,(saved/goalAmt)*100);
+  document.getElementById('goal-pct-label').textContent=pct.toFixed(1)+'%';
+  document.getElementById('goal-bar').style.width=pct+'%';
+}
+
+function saveGoal() {
+  state.goal.saved=parseFloat(document.getElementById('goal-saved-input').value)||0;
+  state.goal.weeksDone=parseInt(document.getElementById('goal-weeks-input').value)||0;
+  state.goal.target=parseFloat(document.getElementById('goal-target-input').value)||50000;
+  save(); renderDashboard(); renderGoal();
+}
+
+function renderGoal() {
+  var saved=state.goal.saved||0, goalAmt=state.goal.target||50000, weeksDone=state.goal.weeksDone||0;
+  var pct=Math.min(100,(saved/goalAmt)*100);
+  var wt=weeklyTarget(); var wSave=Math.ceil(goalAmt/16);
+  document.getElementById('goal-saved-input').value=saved||'';
+  document.getElementById('goal-weeks-input').value=weeksDone||'';
+  document.getElementById('goal-target-input').value=goalAmt;
+  document.getElementById('goal-pct-label').textContent=pct.toFixed(1)+'%';
+  document.getElementById('goal-bar').style.width=pct+'%';
+  document.getElementById('goal-weekly-display').textContent=fmtAbs(wt)+'/wk';
+  document.getElementById('goal-save-needed').textContent=fmtAbs(wSave)+'/wk';
+  document.getElementById('goal-weeks-left2').textContent=Math.max(0,16-weeksDone);
+  var rows=''; var cum=0;
+  for(var i=1;i<=16;i++){cum+=wSave; var done=i<=weeksDone;
+    rows+='<div class="week-row '+(done?'week-completed':'')+'">'
+      +'<span style="font-family:var(--font-mono);font-size:12px;color:var(--muted);">Week '+i+(done?' ✓':'')+'</span>'
+      +'<span style="font-family:var(--font-mono);font-size:12px;color:var(--muted);">Gross '+fmtAbs(wt)+'</span>'
+      +'<span style="font-family:var(--font-mono);font-size:12px;color:var(--success);">Save '+fmtAbs(wSave)+'</span>'
+      +'<span style="font-family:var(--font-mono);font-size:12px;color:var(--muted);">→ '+fmtAbs(cum)+'</span>'
+    +'</div>';}
+  document.getElementById('week-schedule').innerHTML=rows;
+}
+
+// ─── MINDSET JOURNAL ─────────────────────────────────────────────────────────
+var MOOD_LABELS={1:'Struggling',2:'Very low',3:'Low',4:'Below average',5:'Neutral',6:'Okay',7:'Pretty good',8:'Strong',9:'Very strong',10:'Peak state'};
+var TYPE_LABELS={reflection:'Daily reflection',breakthrough:'Breakthrough',setback:'Setback',pattern:'Pattern',gratitude:'Gratitude',letter:'Letter to self',free:'Free write'};
+var PROMPTS={
+  reflection:['What happened in your head today — not just the market?','What emotion showed up most?','Did you follow your plan? If not — what was the real reason?','What would you do differently tomorrow?'],
+  breakthrough:['Describe the moment. What shifted?','What belief did you break through?','How can you protect and repeat this?'],
+  setback:['What happened? Be completely honest.','What were you feeling 30 minutes before it went wrong?','Was this a new mistake or an old pattern?','What would a disciplined version of you have done?'],
+  pattern:['Describe the pattern.','How long has this been running your trading?','What does this pattern protect you from?','What would breaking it cost you emotionally?'],
+  gratitude:['What went right today — no matter how small?','What progress have you made that you haven\'t acknowledged?','What does Thailand represent beyond the money?'],
+  letter:['What do you want your future self in Thailand to know about this moment?','What would you tell yourself 6 months ago?'],
+  free:['What\'s on your mind? Don\'t edit — just write.']
+};
+
+function updateMoodLabel(val){ var el=document.getElementById('j-mood-label'); if(el) el.textContent=MOOD_LABELS[val]||''; }
+
+function updatePrompts() {
+  var type=document.getElementById('j-type')?document.getElementById('j-type').value:'reflection';
+  var prompts=PROMPTS[type]||[];
+  var el=document.getElementById('j-prompts'); if(!el) return;
+  if(!prompts.length){el.innerHTML='';return;}
+  el.innerHTML='<div style="background:var(--gold-light);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:4px;">'
+    +'<div style="font-family:var(--font-mono);font-size:10px;color:var(--gold-dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Guided prompts</div>'
+    +prompts.map(function(p,i){return '<div style="font-size:13px;color:var(--gold-dim);padding:3px 0;display:flex;gap:8px;"><span style="font-family:var(--font-mono);flex-shrink:0;">'+(i+1)+'.</span><span>'+p+'</span></div>';}).join('')
+  +'</div>';
+}
+
+function clearJournal() {
+  ['j-title','j-body','j-tags'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  var m=document.getElementById('j-mood'); if(m){m.value=5;document.getElementById('j-mood-out').textContent='5';document.getElementById('j-mood-label').textContent='Neutral';}
+  var e=document.getElementById('j-error'); if(e)e.textContent='';
+}
+
+function saveJournal() {
+  var body=document.getElementById('j-body').value.trim();
+  var errEl=document.getElementById('j-error');
+  if(!body){errEl.textContent='Write something first — even one sentence counts.';return;} errEl.textContent='';
+  var tags=document.getElementById('j-tags').value.split(',').map(function(t){return t.trim().toLowerCase();}).filter(Boolean);
+  state.journal.unshift({
+    id:Date.now(),date:todayStr(),time:timeStr(),
+    type:document.getElementById('j-type').value,
+    mood:parseInt(document.getElementById('j-mood').value),
+    title:document.getElementById('j-title').value.trim(),
+    body:body,tags:tags
+  });
+  save(); clearJournal(); renderJournal();
+  var el=document.getElementById('journal-list'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function deleteJournal(id){ if(!confirm('Delete this entry?')) return; state.journal=state.journal.filter(function(e){return e.id!==id;}); save(); renderJournal(); }
+
+function renderJournal() {
+  var el=document.getElementById('journal-list'); if(!el) return;
+  if(!state.journal.length){el.innerHTML='<div class="empty-state">No entries yet. Write your first entry above.</div>';return;}
+  var search=(document.getElementById('j-search')?document.getElementById('j-search').value:'').toLowerCase();
+  var fType=document.getElementById('j-filter-type')?document.getElementById('j-filter-type').value:'';
+  var fMood=document.getElementById('j-filter-mood')?document.getElementById('j-filter-mood').value:'';
+  var entries=state.journal.slice();
+  if(fType) entries=entries.filter(function(e){return e.type===fType;});
+  if(fMood==='high') entries=entries.filter(function(e){return e.mood>=8;});
+  else if(fMood==='mid') entries=entries.filter(function(e){return e.mood>=4&&e.mood<=7;});
+  else if(fMood==='low') entries=entries.filter(function(e){return e.mood<=3;});
+  if(search) entries=entries.filter(function(e){return (e.title||'').toLowerCase().includes(search)||(e.body||'').toLowerCase().includes(search)||(e.tags||[]).some(function(t){return t.includes(search);});});
+  if(!entries.length){el.innerHTML='<div class="empty-state">No entries match your filters.</div>';return;}
+  el.innerHTML=entries.map(function(e){
+    var isSetback=e.type==='setback', isGood=e.type==='breakthrough'||e.type==='gratitude';
+    var typeBg=isSetback?'var(--danger-bg)':isGood?'var(--success-bg)':'var(--gold-light)';
+    var typeColor=isSetback?'var(--danger)':isGood?'var(--success)':'var(--gold-dim)';
+    var border=isSetback?'var(--danger)':isGood?'var(--success)':'var(--gold)';
+    var moodPct=(e.mood/10)*100;
+    var moodColor=e.mood>=7?'var(--success)':e.mood>=4?'var(--gold)':'var(--danger)';
+    var tagsHTML=(e.tags||[]).map(function(t){return '<span style="display:inline-block;font-size:10px;font-family:var(--font-mono);background:var(--surface);color:var(--muted);padding:2px 8px;border-radius:10px;margin:2px 3px 2px 0;">#'+t+'</span>';}).join('');
+    return '<div style="background:var(--card-bg);border:0.5px solid var(--border);border-left:3px solid '+border+';border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:14px;">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:12px;">'
+        +'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+          +'<span style="background:'+typeBg+';color:'+typeColor+';font-family:var(--font-mono);font-size:11px;font-weight:500;padding:3px 10px;border-radius:10px;">'+(TYPE_LABELS[e.type]||e.type)+'</span>'
+          +'<span style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">'+e.date+' · '+(e.time||'')+'</span>'
+        +'</div>'
+        +'<button class="delete-btn" onclick="deleteJournal('+e.id+')">×</button>'
+      +'</div>'
+      +(e.title?'<div style="font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--text);margin-bottom:10px;line-height:1.4;">'+e.title+'</div>':'')
+      +'<div style="margin-bottom:10px;">'
+        +'<div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-bottom:4px;">Mood — '+(MOOD_LABELS[e.mood]||e.mood)+' ('+e.mood+'/10)</div>'
+        +'<div style="height:6px;background:var(--surface);border-radius:3px;overflow:hidden;"><div style="width:'+moodPct+'%;height:100%;background:'+moodColor+';border-radius:3px;"></div></div>'
+      +'</div>'
+      +'<div style="font-size:14px;color:var(--text);line-height:1.8;white-space:pre-wrap;margin-bottom:10px;">'+e.body+'</div>'
+      +(tagsHTML?'<div>'+tagsHTML+'</div>':'')
+    +'</div>';
+  }).join('');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+load();
+syncAccounts();
+renderDashboard();
+renderGoal();
+renderRules();
+renderAccounts();
+populateDropdowns();
+renderTradeLog();
+renderRituals();
+renderJournal();
+updatePrompts();
+</script>
+</body>
+</html>
